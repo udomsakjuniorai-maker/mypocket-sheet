@@ -114,9 +114,123 @@
         .fab-btn:active {
             transform: scale(0.95);
         }
+
+        /* Login Screen */
+        #loginScreen {
+            position: fixed;
+            inset: 0;
+            background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+            z-index: 9999; /* Top most */
+            display: flex; /* Show by default */
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: opacity 0.5s ease-out, transform 0.5s ease-out;
+        }
+        .login-hidden {
+            opacity: 0;
+            pointer-events: none;
+            transform: translateY(-20px);
+        }
+
+        /* Numpad Styles */
+        .num-btn {
+            width: 64px; height: 64px;
+            border-radius: 50%;
+            background: white;
+            border: 1px solid #e2e8f0;
+            font-size: 24px;
+            font-weight: 600;
+            color: #334155;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.1s;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+            cursor: pointer;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .num-btn:active {
+            background-color: #f0fdf4;
+            transform: scale(0.95);
+            border-color: #86efac;
+        }
+        .num-btn-action {
+            background-color: transparent;
+            border-color: transparent;
+            box-shadow: none;
+            color: #64748b;
+        }
+        .num-btn-action:active {
+            background-color: #f1f5f9;
+        }
     </style>
 </head>
 <body class="text-slate-800 min-h-screen flex flex-col">
+
+    <!-- LOGIN SCREEN -->
+    <div id="loginScreen">
+        <!-- Welcome Section -->
+        <div id="welcomeSection" class="flex flex-col items-center w-full max-w-sm px-6 py-8">
+            <div class="flex flex-col items-center gap-4 mb-8">
+                <div class="w-24 h-24 bg-white rounded-full flex items-center justify-center text-green-600 shadow-xl border-4 border-green-100">
+                    <i data-lucide="wallet" class="w-12 h-12"></i>
+                </div>
+                <div class="text-center">
+                    <h1 class="text-3xl font-bold text-slate-800 tracking-tight">MyPocket <span class="text-sm bg-green-600 text-white px-2 py-1 rounded-lg align-middle ml-1">Lite</span></h1>
+                    <p class="text-slate-500 mt-2">บันทึกรายรับรายจ่าย ง่ายๆ แค่ปลายนิ้ว</p>
+                </div>
+            </div>
+            
+            <button onclick="showPinEntry()" class="w-full bg-green-600 hover:bg-green-700 text-white text-lg font-bold py-4 rounded-2xl shadow-lg shadow-green-200 transition transform active:scale-95 flex items-center justify-center gap-2 group">
+                <span>เข้าสู่ระบบ</span>
+                <i data-lucide="arrow-right" class="w-5 h-5 group-hover:translate-x-1 transition-transform"></i>
+            </button>
+            
+            <div class="mt-12 text-center">
+                <p class="text-slate-400 text-xs">Version 1.2 • Powered by Google Sheet</p>
+            </div>
+        </div>
+
+        <!-- PIN Entry Section (Initially Hidden) -->
+        <div id="pinEntrySection" class="hidden flex-col items-center w-full max-w-sm px-6">
+            <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4 text-green-600 shadow-sm">
+                <i data-lucide="lock" class="w-8 h-8"></i>
+            </div>
+            <h2 class="text-xl font-bold text-slate-800 mb-1">ใส่รหัสผ่าน</h2>
+            <p class="text-slate-500 text-sm mb-8">กรุณากรอกรหัส 4 หลักเพื่อเข้าใช้งาน</p>
+            
+            <div class="relative mb-2 w-full max-w-[200px]">
+                <input type="password" id="loginPinInput" maxlength="4" inputmode="none" readonly placeholder="••••" autocomplete="off" 
+                    class="w-full text-center text-4xl tracking-[0.5em] py-2 border-b-2 border-slate-300 focus:border-green-500 outline-none font-mono bg-transparent text-slate-800 transition-colors cursor-default">
+            </div>
+            
+            <div id="loginError" class="text-rose-500 text-sm font-medium h-6 mb-4 opacity-0 transition-opacity flex items-center gap-1">
+                <i data-lucide="alert-circle" class="w-4 h-4"></i> รหัสผ่านไม่ถูกต้อง
+            </div>
+
+            <!-- Numpad -->
+            <div class="grid grid-cols-3 gap-x-6 gap-y-5 mb-8">
+                <button class="num-btn" onclick="appendLoginPin('1')">1</button>
+                <button class="num-btn" onclick="appendLoginPin('2')">2</button>
+                <button class="num-btn" onclick="appendLoginPin('3')">3</button>
+                <button class="num-btn" onclick="appendLoginPin('4')">4</button>
+                <button class="num-btn" onclick="appendLoginPin('5')">5</button>
+                <button class="num-btn" onclick="appendLoginPin('6')">6</button>
+                <button class="num-btn" onclick="appendLoginPin('7')">7</button>
+                <button class="num-btn" onclick="appendLoginPin('8')">8</button>
+                <button class="num-btn" onclick="appendLoginPin('9')">9</button>
+                <div class="w-[64px]"></div> <!-- Empty slot -->
+                <button class="num-btn" onclick="appendLoginPin('0')">0</button>
+                <button class="num-btn num-btn-action" onclick="backspaceLoginPin()">
+                    <i data-lucide="delete" class="w-7 h-7"></i>
+                </button>
+            </div>
+            
+            <button onclick="hidePinEntry()" class="mt-2 text-slate-400 text-sm hover:text-slate-600 transition">ยกเลิก</button>
+        </div>
+    </div>
 
     <!-- Navbar -->
     <nav class="bg-white shadow-sm sticky top-0 z-50">
@@ -282,7 +396,7 @@
         </div>
     </div>
 
-    <!-- PIN Modal -->
+    <!-- PIN Modal (Action Confirmation) -->
     <div id="pinOverlay"></div>
     <div id="pinModalContent">
         <div class="flex justify-center mb-4"><div class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center text-green-600"><i data-lucide="lock" class="w-6 h-6"></i></div></div>
@@ -474,11 +588,10 @@
             document.getElementById('note').value='';
             document.getElementById('addOverlay').classList.add('overlay-visible');
             document.getElementById('addModalContent').classList.add('visible-block');
-            // Set default date if empty
-            if(!document.getElementById('date').value) {
-                document.getElementById('date').valueAsDate = new Date();
-                updateDateDisplay();
-            }
+            
+            // Set default date to TODAY regardless of what was there
+            document.getElementById('date').valueAsDate = new Date();
+            updateDateDisplay();
         }
         function closeAddModal() {
             document.getElementById('addOverlay').classList.remove('overlay-visible');
@@ -752,6 +865,60 @@
             } else { document.getElementById('pinError').innerText = 'รหัสผ่านไม่ถูกต้อง'; } 
         }
 
+        // Login Screen Logic
+        const loginPinInput = document.getElementById('loginPinInput');
+        const loginError = document.getElementById('loginError');
+        const loginScreen = document.getElementById('loginScreen');
+
+        function showPinEntry() {
+            document.getElementById('welcomeSection').classList.add('hidden');
+            document.getElementById('pinEntrySection').classList.remove('hidden');
+            document.getElementById('pinEntrySection').classList.add('flex');
+        }
+
+        function hidePinEntry() {
+            document.getElementById('welcomeSection').classList.remove('hidden');
+            document.getElementById('pinEntrySection').classList.add('hidden');
+            document.getElementById('pinEntrySection').classList.remove('flex');
+        }
+
+        function appendLoginPin(num) {
+            if (loginPinInput.value.length < 4) {
+                loginPinInput.value += num;
+                // Auto check if 4 digits
+                if (loginPinInput.value.length === 4) {
+                    setTimeout(checkLogin, 100);
+                }
+            }
+        }
+
+        function backspaceLoginPin() {
+            loginPinInput.value = loginPinInput.value.slice(0, -1);
+            loginError.style.opacity = '0';
+        }
+
+        function checkLogin() {
+            if (loginPinInput.value === CORRECT_PIN) {
+                // Success
+                loginScreen.classList.add('login-hidden');
+                // Remove from DOM after animation to prevent interfering with layout
+                setTimeout(() => {
+                    loginScreen.style.display = 'none';
+                }, 500);
+            } else {
+                // Error
+                loginError.style.opacity = '1';
+                loginPinInput.classList.add('border-rose-500', 'text-rose-500');
+                
+                // Shake effect
+                setTimeout(() => {
+                    loginPinInput.value = '';
+                    loginPinInput.classList.remove('border-rose-500', 'text-rose-500');
+                    // Keep error message visible until they type again or after a delay
+                }, 500);
+            }
+        }
+        
         // Listeners
         document.getElementById('transactionForm').onsubmit = (e) => { e.preventDefault(); openPin({type:'add'}); };
         document.getElementById('editForm').onsubmit = (e) => { e.preventDefault(); openPin({type:'saveEdit'}); };
