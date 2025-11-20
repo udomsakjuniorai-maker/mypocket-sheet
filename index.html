@@ -2,61 +2,35 @@
 <html lang="th">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>บันทึกรายรับรายจ่าย (MyPocket)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
-    
-    <!-- Libraries -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
 
     <style>
-        body { font-family: 'Prompt', sans-serif; background-color: #F3F4F6; }
+        body { 
+            font-family: 'Prompt', sans-serif; 
+            background-color: #F3F4F6;
+            touch-action: manipulation; 
+            -webkit-text-size-adjust: 100%;
+        }
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-        
         @keyframes pulse { 0% { opacity: 1; } 50% { opacity: .5; } }
         .animate-pulse { animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
-        @keyframes slideIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
-        .undo-row { animation: slideIn 0.3s ease-out; }
-
-        /* Print Styles */
+        
         .print-table { border-collapse: collapse; width: 100%; font-family: 'Prompt', sans-serif; color: #000; }
-        .print-table th, .print-table td { 
-            border: 1px solid #64748b; 
-            padding: 6px 8px; 
-            text-align: left; 
-            font-size: 11px;
-        }
+        .print-table th, .print-table td { border: 1px solid #64748b; padding: 6px 8px; text-align: left; font-size: 11px; }
         .print-table th { background-color: #e2e8f0; color: #1e293b; font-weight: 600; text-align: center; white-space: nowrap; }
-        
         .print-table td.num { text-align: right; font-family: monospace; font-weight: 500; }
+        .print-table tr.row-bold td { font-weight: 700 !important; background-color: #f1f5f9; }
+        .print-table tfoot td { font-weight: 700 !important; font-size: 12px; background-color: #f8fafc; }
 
-        /* Bold Row Styles */
-        .print-table tr.row-bold td { 
-            font-weight: 700 !important; 
-            background-color: #f1f5f9;   
-        }
-        .print-table tr.row-bold td.num {
-            font-weight: 700 !important;
-        }
-        
-        /* Footer Styles */
-        .print-table tfoot td {
-            font-weight: 700 !important; 
-            font-size: 12px;             
-            background-color: #f8fafc;
-        }
-        .print-table tfoot td.num {
-            font-weight: 700 !important;
-        }
-
-        /* Modals */
         #exportOverlay, #editOverlay, #addOverlay { position: fixed; inset: 0; background: rgba(0,0,0,0.75); z-index: 90; display: none; backdrop-filter: blur(4px); }
         #exportModal { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0.95); width: 95%; max-width: 1000px; height: 90vh; background: white; border-radius: 16px; z-index: 100; display: none; flex-direction: column; opacity: 0; transition: all 0.3s ease; }
-        
         #editModalContent, #addModalContent { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0.95); width: 95%; max-width: 500px; background: white; border-radius: 16px; z-index: 100; display: none; padding: 24px; opacity: 0; transition: all 0.3s ease; }
         
         .visible { display: flex !important; opacity: 1 !important; transform: translate(-50%, -50%) scale(1) !important; }
@@ -72,219 +46,87 @@
             margin: auto; 
             color: #1e293b;
         }
+
+        .fab-btn { position: fixed; bottom: 24px; right: 24px; width: 56px; height: 56px; border-radius: 50%; background-color: #16a34a; color: white; display: flex; align-items: center; justify-content: center; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); transition: transform 0.2s, background-color 0.2s; z-index: 50; border: 2px solid white; touch-action: manipulation; }
+        .fab-btn:hover { transform: scale(1.1); background-color: #15803d; }
+        .fab-btn:active { transform: scale(0.95); }
+
+        #loginScreen { position: fixed; inset: 0; background: rgba(240, 253, 244, 0.85); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: opacity 0.5s ease-out, transform 0.5s ease-out; }
+        .login-hidden { opacity: 0; pointer-events: none; transform: translateY(-20px); }
         
-        /* Loading Spinner */
-        .loading-spinner {
-            border: 2px solid #f3f3f3;
-            border-radius: 50%;
-            border-top: 2px solid #3498db;
-            width: 12px;
-            height: 12px;
-            -webkit-animation: spin 1s linear infinite; /* Safari */
-            animation: spin 1s linear infinite;
-            display: inline-block;
-        }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
+        .num-btn { width: 60px; height: 60px; border-radius: 50%; background: white; border: 1px solid #e2e8f0; font-size: 24px; font-weight: 600; color: #334155; display: flex; align-items: center; justify-content: center; transition: all 0.1s; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); cursor: pointer; user-select: none; touch-action: manipulation; }
+        .num-btn:active { background-color: #f0fdf4; transform: scale(0.95); border-color: #86efac; }
+        .num-btn-action { background-color: transparent; border-color: transparent; box-shadow: none; color: #64748b; }
+        
+        input, select, textarea, button { font-size: 16px; touch-action: manipulation; }
 
-        /* FAB Button */
-        .fab-btn {
-            position: fixed;
-            bottom: 24px;
-            right: 24px;
-            width: 56px;
-            height: 56px;
-            border-radius: 50%;
-            background-color: #16a34a;
-            color: white;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-            transition: transform 0.2s, background-color 0.2s;
-            z-index: 50;
-            border: 2px solid white;
-        }
-        .fab-btn:hover {
-            transform: scale(1.1);
-            background-color: #15803d;
-        }
-        .fab-btn:active {
-            transform: scale(0.95);
-        }
-
-        /* Login Screen with Blur */
-        #loginScreen {
-            position: fixed;
-            inset: 0;
-            /* Updated Background for Blur Effect */
-            background: rgba(240, 253, 244, 0.85); /* Semi-transparent green tint */
-            backdrop-filter: blur(12px); /* The Blur Effect */
-            -webkit-backdrop-filter: blur(12px);
-            z-index: 9999; /* Top most */
-            display: flex; /* Show by default */
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            transition: opacity 0.5s ease-out, transform 0.5s ease-out;
-        }
-        .login-hidden {
-            opacity: 0;
-            pointer-events: none;
-            transform: translateY(-20px);
-        }
-
-        /* Numpad Styles */
-        .num-btn {
-            width: 60px; height: 60px;
-            border-radius: 50%;
-            background: white;
-            border: 1px solid #e2e8f0;
-            font-size: 24px;
-            font-weight: 600;
-            color: #334155;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.1s;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
-            cursor: pointer;
-            user-select: none;
-            -webkit-tap-highlight-color: transparent;
-        }
-        .num-btn:active {
-            background-color: #f0fdf4;
-            transform: scale(0.95);
-            border-color: #86efac;
-        }
-        .num-btn-action {
-            background-color: transparent;
-            border-color: transparent;
-            box-shadow: none;
-            color: #64748b;
-        }
-        .num-btn-action:active {
-            background-color: #f1f5f9;
-        }
+        /* Status Badges */
+        .status-badge { display: inline-flex; align-items: center; gap: 4px; font-size: 10px; padding: 2px 6px; border-radius: 12px; margin-left: 6px; white-space: nowrap; }
+        .status-synced { color: #16a34a; background-color: #dcfce7; border: 1px solid #bbf7d0; }
+        .status-failed { color: #dc2626; background-color: #fee2e2; border: 1px solid #fecaca; cursor: pointer; transition: all 0.2s; }
+        .status-failed:hover { background-color: #fecaca; }
+        .status-pending { color: #f59e0b; background-color: #fef3c7; border: 1px solid #fde68a; }
     </style>
 </head>
 <body class="text-slate-800 min-h-screen flex flex-col">
 
     <!-- LOGIN SCREEN -->
     <div id="loginScreen">
-        <!-- Welcome Section -->
         <div id="welcomeSection" class="flex flex-col items-center w-full max-w-sm px-6 py-8">
             <div class="flex flex-col items-center gap-4 mb-8">
-                <div class="w-24 h-24 bg-white rounded-full flex items-center justify-center text-green-600 shadow-xl border-4 border-green-100">
-                    <i data-lucide="wallet" class="w-12 h-12"></i>
-                </div>
-                <div class="text-center">
-                    <h1 class="text-3xl font-bold text-slate-800 tracking-tight">MyPocket <span class="text-sm bg-green-600 text-white px-2 py-1 rounded-lg align-middle ml-1">Lite</span></h1>
-                    <p class="text-slate-500 mt-2">บันทึกรายรับรายจ่าย ง่ายๆ แค่ปลายนิ้ว</p>
-                </div>
+                <div class="w-24 h-24 bg-white rounded-full flex items-center justify-center text-green-600 shadow-xl border-4 border-green-100"><i data-lucide="wallet" class="w-12 h-12"></i></div>
+                <div class="text-center"><h1 class="text-3xl font-bold text-slate-800 tracking-tight">MyPocket <span class="text-sm bg-green-600 text-white px-2 py-1 rounded-lg align-middle ml-1">Lite</span></h1><p class="text-slate-500 mt-2">บันทึกรายรับรายจ่าย ง่ายๆ แค่ปลายนิ้ว</p></div>
             </div>
-            
-            <button onclick="showPinEntry()" class="w-full bg-green-600 hover:bg-green-700 text-white text-lg font-bold py-4 rounded-2xl shadow-lg shadow-green-200 transition transform active:scale-95 flex items-center justify-center gap-2 group">
-                <span>เข้าสู่ระบบ</span>
-                <i data-lucide="arrow-right" class="w-5 h-5 group-hover:translate-x-1 transition-transform"></i>
-            </button>
-            
-            <div class="mt-12 text-center">
-                <p class="text-slate-400 text-xs">Version 1.3 • Powered by Google Sheet</p>
-            </div>
+            <button onclick="showPinEntry()" class="w-full bg-green-600 hover:bg-green-700 text-white text-lg font-bold py-4 rounded-2xl shadow-lg shadow-green-200 transition transform active:scale-95 flex items-center justify-center gap-2 group"><span>เข้าสู่ระบบ</span><i data-lucide="arrow-right" class="w-5 h-5 group-hover:translate-x-1 transition-transform"></i></button>
+            <div class="mt-12 text-center"><p class="text-slate-400 text-xs">Version 2.3 (Instant UI)</p></div>
         </div>
-
-        <!-- PIN Entry Section (Initially Hidden) -->
         <div id="pinEntrySection" class="hidden flex-col items-center w-full max-w-sm px-6">
-            <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4 text-green-600 shadow-sm">
-                <i data-lucide="lock" class="w-8 h-8"></i>
-            </div>
+            <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4 text-green-600 shadow-sm"><i data-lucide="lock" class="w-8 h-8"></i></div>
             <h2 class="text-xl font-bold text-slate-800 mb-1">ใส่รหัสผ่าน</h2>
             <p class="text-slate-500 text-sm mb-8">กรุณากรอกรหัส 4 หลักเพื่อเข้าใช้งาน</p>
-            
-            <div class="relative mb-2 w-full max-w-[200px]">
-                <input type="password" id="loginPinInput" maxlength="4" inputmode="none" readonly placeholder="••••" autocomplete="off" 
-                    class="w-full text-center text-4xl tracking-[0.5em] py-2 border-b-2 border-slate-300 focus:border-green-500 outline-none font-mono bg-transparent text-slate-800 transition-colors cursor-default">
-            </div>
-            
-            <div id="loginError" class="text-rose-500 text-sm font-medium h-6 mb-4 opacity-0 transition-opacity flex items-center gap-1">
-                <i data-lucide="alert-circle" class="w-4 h-4"></i> รหัสผ่านไม่ถูกต้อง
-            </div>
-
-            <!-- Numpad -->
+            <div class="relative mb-2 w-full max-w-[200px]"><input type="password" id="loginPinInput" maxlength="4" inputmode="none" readonly placeholder="••••" autocomplete="off" class="w-full text-center text-4xl tracking-[0.5em] py-2 border-b-2 border-slate-300 focus:border-green-500 outline-none font-mono bg-transparent text-slate-800 transition-colors cursor-default"></div>
+            <div id="loginError" class="text-rose-500 text-sm font-medium h-6 mb-4 opacity-0 transition-opacity flex items-center gap-1"><i data-lucide="alert-circle" class="w-4 h-4"></i> รหัสผ่านไม่ถูกต้อง</div>
             <div class="grid grid-cols-3 gap-x-6 gap-y-5 mb-8">
-                <button class="num-btn" onclick="appendLoginPin('1')">1</button>
-                <button class="num-btn" onclick="appendLoginPin('2')">2</button>
-                <button class="num-btn" onclick="appendLoginPin('3')">3</button>
-                <button class="num-btn" onclick="appendLoginPin('4')">4</button>
-                <button class="num-btn" onclick="appendLoginPin('5')">5</button>
-                <button class="num-btn" onclick="appendLoginPin('6')">6</button>
-                <button class="num-btn" onclick="appendLoginPin('7')">7</button>
-                <button class="num-btn" onclick="appendLoginPin('8')">8</button>
-                <button class="num-btn" onclick="appendLoginPin('9')">9</button>
-                <div class="w-[64px]"></div> <!-- Empty slot -->
-                <button class="num-btn" onclick="appendLoginPin('0')">0</button>
-                <button class="num-btn num-btn-action" onclick="backspaceLoginPin()">
-                    <i data-lucide="delete" class="w-7 h-7"></i>
-                </button>
+                <button class="num-btn" onclick="appendLoginPin('1')">1</button><button class="num-btn" onclick="appendLoginPin('2')">2</button><button class="num-btn" onclick="appendLoginPin('3')">3</button>
+                <button class="num-btn" onclick="appendLoginPin('4')">4</button><button class="num-btn" onclick="appendLoginPin('5')">5</button><button class="num-btn" onclick="appendLoginPin('6')">6</button>
+                <button class="num-btn" onclick="appendLoginPin('7')">7</button><button class="num-btn" onclick="appendLoginPin('8')">8</button><button class="num-btn" onclick="appendLoginPin('9')">9</button>
+                <div class="w-[60px]"></div><button class="num-btn" onclick="appendLoginPin('0')">0</button>
+                <button class="num-btn num-btn-action" onclick="backspaceLoginPin()"><i data-lucide="delete" class="w-7 h-7"></i></button>
             </div>
-            
             <button onclick="hidePinEntry()" class="mt-2 text-slate-400 text-sm hover:text-slate-600 transition">ยกเลิก</button>
         </div>
     </div>
 
-    <!-- Navbar -->
     <nav class="bg-white shadow-sm sticky top-0 z-50">
         <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between h-16 items-center">
-                <div class="flex items-center gap-2 text-green-600">
-                    <i data-lucide="wallet" class="w-8 h-8"></i>
-                    <span class="font-bold text-xl tracking-tight">MyPocket <span class="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full ml-1">Lite</span></span>
-                </div>
+                <div class="flex items-center gap-2 text-green-600"><i data-lucide="wallet" class="w-8 h-8"></i><span class="font-bold text-xl tracking-tight">MyPocket <span class="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full ml-1">Lite</span></span></div>
                 <div class="relative group">
-                    <div class="flex items-center gap-2 bg-green-50 border border-green-100 text-green-700 text-sm rounded-xl px-4 py-2.5 font-medium cursor-pointer transition hover:bg-green-100">
-                        <i data-lucide="calendar-days" class="w-5 h-5"></i>
-                        <span id="monthSelectorLabel" class="min-w-[80px] text-center">...</span>
-                        <i data-lucide="chevron-down" class="w-4 h-4 ml-1 opacity-50"></i>
-                    </div>
+                    <div class="flex items-center gap-2 bg-green-50 border border-green-100 text-green-700 text-sm rounded-xl px-4 py-2.5 font-medium cursor-pointer transition hover:bg-green-100"><i data-lucide="calendar-days" class="w-5 h-5"></i><span id="monthSelectorLabel" class="min-w-[80px] text-center">...</span><i data-lucide="chevron-down" class="w-4 h-4 ml-1 opacity-50"></i></div>
                     <input type="month" id="monthFilter" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-20 block">
                 </div>
             </div>
         </div>
     </nav>
 
-    <!-- Main Content -->
     <main class="flex-grow max-w-5xl mx-auto w-full px-4 py-8 sm:px-6 lg:px-8 pb-32">
-        <!-- Header -->
         <div class="mb-6 flex justify-between items-center">
-            <div>
-                <h2 class="text-xl font-bold text-slate-800">ภาพรวมประจำเดือน</h2>
-                <p id="displayDateText" class="text-slate-500 text-sm">...</p>
-            </div>
-            <div id="syncStatus" class="text-xs text-slate-400 flex items-center gap-1"><div class="w-2 h-2 bg-slate-300 rounded-full"></div> พร้อมใช้งาน</div>
+            <div><h2 class="text-xl font-bold text-slate-800">ภาพรวมประจำเดือน</h2><p id="displayDateText" class="text-slate-500 text-sm">...</p></div>
+            <div id="syncStatus" class="text-xs text-slate-400 flex items-center gap-1"><div class="w-2 h-2 bg-slate-300 rounded-full"></div> รอการซิงค์...</div>
         </div>
-        
-        <!-- Stats -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
             <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 relative overflow-hidden"><div class="absolute right-0 top-0 h-full w-1 bg-indigo-500"></div><div class="text-slate-500 text-sm font-medium mb-1">คงเหลือ</div><div id="balanceDisplay" class="text-3xl font-bold text-slate-800">฿0</div></div>
             <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 relative overflow-hidden"><div class="absolute right-0 top-0 h-full w-1 bg-emerald-400"></div><div class="text-slate-500 text-sm font-medium mb-1">รายรับ</div><div id="incomeDisplay" class="text-3xl font-bold text-emerald-500">+฿0</div></div>
             <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 relative overflow-hidden"><div class="absolute right-0 top-0 h-full w-1 bg-rose-400"></div><div class="text-slate-500 text-sm font-medium mb-1">รายจ่าย</div><div id="expenseDisplay" class="text-3xl font-bold text-rose-500">-฿0</div></div>
         </div>
-
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <!-- List (Full Width) -->
             <div class="lg:col-span-3">
                 <div class="bg-white rounded-2xl shadow-sm border border-slate-100 h-full flex flex-col min-h-[500px]">
                     <div class="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50/50 rounded-t-2xl">
                         <h3 class="font-bold text-lg flex items-center gap-2"><i data-lucide="history" class="w-5 h-5 text-green-600"></i> รายการประจำเดือน</h3>
                         <div class="flex items-center gap-2">
-                            <!-- FIXED: Export Dropdown (Click instead of Hover) -->
                             <div class="relative" id="exportDropdownContainer">
-                                <button onclick="toggleExportMenu(event)" class="flex items-center gap-1 text-xs font-medium text-slate-500 bg-slate-100 hover:bg-slate-200 px-3 py-1.5 rounded-lg transition border border-slate-200">
-                                    <i data-lucide="download" class="w-3 h-3"></i> ส่งออก
-                                </button>
+                                <button onclick="toggleExportMenu(event)" class="flex items-center gap-1 text-xs font-medium text-slate-500 bg-slate-100 hover:bg-slate-200 px-3 py-1.5 rounded-lg transition border border-slate-200"><i data-lucide="download" class="w-3 h-3"></i> ส่งออก</button>
                                 <div id="exportMenu" class="absolute right-0 mt-1 w-32 bg-white rounded-xl shadow-xl border border-slate-100 overflow-hidden hidden z-30">
                                     <button onclick="previewExport('png')" class="w-full text-left px-4 py-2 text-xs hover:bg-slate-50 flex items-center gap-2 text-slate-600 border-b border-slate-50"><i data-lucide="image" class="w-3 h-3 text-blue-500"></i> PNG</button>
                                     <button onclick="exportExcel()" class="w-full text-left px-4 py-2 text-xs hover:bg-slate-50 flex items-center gap-2 text-slate-600"><i data-lucide="table" class="w-3 h-3 text-green-500"></i> Excel</button>
@@ -295,7 +137,7 @@
                     </div>
                     <div id="list" class="flex-grow overflow-y-auto p-4 space-y-3 max-h-[600px] no-scrollbar">
                         <div id="skeletonLoader" class="space-y-3">
-                            <div class="flex items-center justify-between p-4 bg-white rounded-xl border border-slate-100 animate-pulse"><div class="flex gap-4"><div class="w-10 h-10 bg-slate-200 rounded-full"></div><div class="space-y-2"><div class="h-4 bg-slate-200 rounded w-32"></div><div class="h-3 bg-slate-200 rounded w-20"></div></div></div><div class="h-4 bg-slate-200 rounded w-16"></div></div>
+                             <div class="flex items-center justify-between p-4 bg-white rounded-xl border border-slate-100 animate-pulse"><div class="flex gap-4"><div class="w-10 h-10 bg-slate-200 rounded-full"></div><div class="space-y-2"><div class="h-4 bg-slate-200 rounded w-32"></div><div class="h-3 bg-slate-200 rounded w-20"></div></div></div><div class="h-4 bg-slate-200 rounded w-16"></div></div>
                         </div>
                     </div>
                 </div>
@@ -303,21 +145,16 @@
         </div>
     </main>
 
-    <!-- Floating Action Button -->
-    <button onclick="openAddModal()" class="fab-btn" title="เพิ่มรายการใหม่">
-        <i data-lucide="plus" class="w-8 h-8"></i>
-    </button>
+    <button onclick="openAddModal()" class="fab-btn" title="เพิ่มรายการใหม่"><i data-lucide="plus" class="w-8 h-8"></i></button>
 
-    <!-- Add Modal -->
+    <!-- ADD MODAL -->
     <div id="addOverlay"></div>
     <div id="addModalContent">
-        <h3 class="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
-            <i data-lucide="plus-circle" class="w-5 h-5 text-green-600"></i> เพิ่มรายการใหม่
-        </h3>
+        <h3 class="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2"><i data-lucide="plus-circle" class="w-5 h-5 text-green-600"></i> เพิ่มรายการใหม่</h3>
         <form id="transactionForm" class="space-y-4">
             <div class="grid grid-cols-2 gap-4">
                 <label class="cursor-pointer"><input type="radio" name="type" value="income" class="peer sr-only"><div class="rounded-xl border-2 border-slate-100 p-2 text-center hover:bg-slate-50 peer-checked:border-emerald-400 peer-checked:bg-emerald-50 peer-checked:text-emerald-600 text-sm">รายรับ</div></label>
-                <label class="cursor-pointer"><input type="radio" name="type" value="expense" class="peer sr-only"><div class="rounded-xl border-2 border-slate-100 p-2 text-center hover:bg-slate-50 peer-checked:border-rose-400 peer-checked:bg-rose-50 peer-checked:text-rose-600 text-sm">รายจ่าย</div></label>
+                <label class="cursor-pointer"><input type="radio" name="type" value="expense" class="peer sr-only" checked><div class="rounded-xl border-2 border-slate-100 p-2 text-center hover:bg-slate-50 peer-checked:border-rose-400 peer-checked:bg-rose-50 peer-checked:text-rose-600 text-sm">รายจ่าย</div></label>
             </div>
             <input type="text" id="text" required placeholder="ชื่อรายการ" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:border-green-500 outline-none text-sm">
             <input type="number" id="amount" step="1" required placeholder="0" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:border-green-500 outline-none text-sm font-mono">
@@ -326,7 +163,6 @@
                 <label class="block text-sm font-medium text-slate-700 mb-1">วันที่</label>
                 <div class="relative group"><div class="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-600 text-sm flex items-center justify-between group-hover:border-green-300 transition"><span id="dateDisplayText">...</span><i data-lucide="calendar" class="w-4 h-4 opacity-50 text-green-500"></i></div><input type="date" id="date" required class="absolute inset-0 w-full h-full opacity-0 cursor-pointer"></div>
             </div>
-            
             <div class="grid grid-cols-2 gap-3 pt-2">
                 <button type="button" onclick="closeAddModal()" class="py-2 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 text-sm">ยกเลิก</button>
                 <button type="submit" id="submitBtn" class="py-2 rounded-xl bg-green-600 hover:bg-green-700 text-white text-sm font-medium shadow-md">บันทึกรายการ</button>
@@ -334,12 +170,10 @@
         </form>
     </div>
 
-    <!-- Edit Modal -->
+    <!-- EDIT MODAL -->
     <div id="editOverlay"></div>
     <div id="editModalContent">
-        <h3 class="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
-            <i data-lucide="edit-3" class="w-5 h-5 text-orange-500"></i> แก้ไขรายการ
-        </h3>
+        <h3 class="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2"><i data-lucide="edit-3" class="w-5 h-5 text-orange-500"></i> แก้ไขรายการ</h3>
         <form id="editForm" class="space-y-4">
             <div class="grid grid-cols-2 gap-4">
                 <label class="cursor-pointer"><input type="radio" name="edit_type" value="income" class="peer sr-only"><div class="rounded-xl border-2 border-slate-100 p-2 text-center hover:bg-slate-50 peer-checked:border-emerald-400 peer-checked:bg-emerald-50 peer-checked:text-emerald-600 text-sm">รายรับ</div></label>
@@ -349,7 +183,6 @@
             <input type="number" id="edit_amount" step="1" required class="w-full px-4 py-2 rounded-xl border border-slate-200 focus:border-orange-500 outline-none text-sm font-mono" placeholder="0">
             <input type="text" id="edit_note" class="w-full px-4 py-2 rounded-xl border border-slate-200 focus:border-orange-500 outline-none text-sm" placeholder="หมายเหตุ">
             <input type="date" id="edit_date" required class="w-full px-4 py-2 rounded-xl border border-slate-200 focus:border-orange-500 outline-none text-sm text-slate-600">
-            
             <div class="grid grid-cols-2 gap-3 pt-2">
                 <button type="button" onclick="closeEditModal()" class="py-2 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 text-sm">ยกเลิก</button>
                 <button type="submit" id="saveEditBtn" class="py-2 rounded-xl bg-orange-500 hover:bg-orange-600 text-white text-sm font-medium shadow-md">บันทึกการแก้ไข</button>
@@ -357,7 +190,7 @@
         </form>
     </div>
 
-    <!-- Export Modal -->
+    <!-- EXPORT MODAL -->
     <div id="exportOverlay"></div>
     <div id="exportModal">
         <div class="flex justify-between items-center p-4 border-b border-slate-100 bg-slate-50/50 rounded-t-2xl">
@@ -366,31 +199,11 @@
         </div>
         <div class="overflow-y-auto p-8 bg-slate-200 flex-grow custom-scrollbar flex justify-center items-start">
             <div id="printArea" class="text-slate-900">
-                <div class="text-center mb-6">
-                    <h1 class="text-xl font-bold text-slate-800 mb-2">รายงานรายรับรายจ่าย</h1>
-                    <p id="exportMonthTitle" class="text-slate-500 font-medium text-base">เดือน...</p>
-                </div>
+                <div class="text-center mb-6"><h1 class="text-xl font-bold text-slate-800 mb-2">รายงานรายรับรายจ่าย</h1><p id="exportMonthTitle" class="text-slate-500 font-medium text-base">เดือน...</p></div>
                 <table class="print-table">
-                    <thead>
-                        <tr>
-                            <th style="width: 1%; white-space: nowrap;">ว/ด/ป</th>
-                            <th style="width: auto;">รายการ</th>
-                            <th style="width: 13%">รายรับ</th>
-                            <th style="width: 13%">รายจ่าย</th>
-                            <th style="width: 14%">คงเหลือ</th>
-                            <th style="width: 15%">หมายเหตุ</th>
-                        </tr>
-                    </thead>
+                    <thead><tr><th style="width: 1%; white-space: nowrap;">ว/ด/ป</th><th style="width: auto;">รายการ</th><th style="width: 13%">รายรับ</th><th style="width: 13%">รายจ่าย</th><th style="width: 14%">คงเหลือ</th><th style="width: 15%">หมายเหตุ</th></tr></thead>
                     <tbody id="exportTableBody"></tbody>
-                    <tfoot>
-                        <tr class="font-bold bg-slate-50 border-t-2 border-slate-300">
-                            <td colspan="2" class="text-center">รวมทั้งสิ้น</td>
-                            <td class="num" style="color: #15803d;" id="exportTotalIncome">0</td>
-                            <td class="num" style="color: #b91c1c;" id="exportTotalExpense">0</td>
-                            <td class="num" style="color: #b45309;" id="exportTotalBalance">0</td>
-                            <td></td>
-                        </tr>
-                    </tfoot>
+                    <tfoot><tr class="font-bold bg-slate-50 border-t-2 border-slate-300"><td colspan="2" class="text-center">รวมทั้งสิ้น</td><td class="num" style="color: #15803d;" id="exportTotalIncome">0</td><td class="num" style="color: #b91c1c;" id="exportTotalExpense">0</td><td class="num" style="color: #b45309;" id="exportTotalBalance">0</td><td></td></tr></tfoot>
                 </table>
                 <div class="mt-8 flex justify-between items-end text-[10px] text-slate-400"><p>MyPocket Application</p><p>พิมพ์เมื่อ: <span id="exportPrintDate"></span></p></div>
             </div>
@@ -398,56 +211,22 @@
     </div>
 
     <script>
-        // ==========================================
-        // CONFIGURATION
-        // ==========================================
-        const USE_LOCAL_STORAGE = false; // เชื่อมต่อ Google Sheet
-        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbziSae1wE57-lXJyMCLV0NOwKQuB7KFLsioWKgju_OOl3WUJPOPfB7IvCvDFGJ97zas9Q/exec"; 
-        const LOCAL_STORAGE_KEY = "MyPocketSheetData";
+        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbziZI63laAUIT_J6y9RL2ygAo2C2HttFkz6qdK-RY9WBXadWPNKvRggIp_rf5OK4Arf6A/exec"; 
         const CORRECT_PIN = "1412";
         const DELETE_DELAY_MS = 4000;
 
-        // INITIAL SEED DATA
-        const INITIAL_DATA = [
-            { id: '1', date: '2025-11-01', type: 'income', amount: 10682, text: 'ยกยอดมาจากเดือนก่อน', note: 'ยอดเดิม' },
-            { id: '2', date: '2025-11-03', type: 'expense', amount: 500, text: 'ซ่อมบอร์ดโน้ตบุ๊ค พอ.', note: '' },
-            { id: '3', date: '2025-11-04', type: 'expense', amount: 400, text: 'ถวายซองวัดศิริ', note: '' },
-            { id: '4', date: '2025-11-07', type: 'expense', amount: 50, text: 'น้ำดื่ม สนง.', note: '' },
-            { id: '5', date: '2025-11-07', type: 'expense', amount: 1000, text: 'กฐินกระทรวงฯ เพิ่มให้อำเภอ 17 ต.ค.68', note: '' },
-            { id: '6', date: '2025-11-07', type: 'expense', amount: 2000, text: 'ผ้าขาว 1 ม้วน ผ้าดำ 1 ม้วน', note: '' },
-            { id: '7', date: '2025-11-07', type: 'expense', amount: 2000, text: 'ค่าอาหาร รับผู้ตรวจ', note: '' },
-            { id: '8', date: '2025-11-10', type: 'expense', amount: 359, text: 'สาย HDMI 20 เมตร + ถ่านไมค์ 2 ก้อน', note: '' },
-            { id: '9', date: '2025-11-10', type: 'expense', amount: 40, text: 'ตะปู', note: '' },
-            { id: '10', date: '2025-11-10', type: 'expense', amount: 310, text: 'ค่าอาหารจัดราการวิทยุ', note: '' },
-            { id: '11', date: '2025-11-10', type: 'expense', amount: 350, text: 'ป้ายพระพันปีฯ 350', note: '' },
-            { id: '12', date: '2025-11-11', type: 'expense', amount: 2000, text: 'ค่าอาหารกองทุนแม่ชะวาวชอ', note: '' },
-            { id: '13', date: '2025-11-11', type: 'expense', amount: 1000, text: 'น้ำมันรถ สนง.', note: '' },
-            { id: '14', date: '2025-11-13', type: 'expense', amount: 500, text: 'ใส่ซองต่อยอดกองทุนแม่โนนเจริญ', note: '' },
-            { id: '15', date: '2025-11-20', type: 'income', amount: 30000, text: 'เข้า สนง. (ไมตรี 20,000, บช.แก้จน 10,000)', note: '' },
-            { id: '16', date: '2025-11-20', type: 'expense', amount: 2500, text: 'พอ.สำรอง: อาหารประชุมโซน', note: '' },
-            { id: '17', date: '2025-11-20', type: 'expense', amount: 4500, text: 'พอ.สำรอง: กองทุนแม่ซะวาซอ (ทุนเด็ก+อาหาร+ต่อยอด)', note: '' },
-            { id: '18', date: '2025-11-20', type: 'expense', amount: 1000, text: 'พอ.สำรอง: ไก่ + เครื่องดื่ม', note: '' },
-            { id: '19', date: '2025-11-20', type: 'expense', amount: 200, text: 'พอ.สำรอง: ใส่ซองวัดศิริ', note: '' },
-            { id: '20', date: '2025-11-20', type: 'expense', amount: 200, text: 'พีเจ สำรอง ถวายวัดศิริ 19 พ.ย. 68', note: '' },
-            { id: '21', date: '2025-11-20', type: 'expense', amount: 1000, text: 'พวงมาลาวันดำรงราชานุภาพ', note: '' }
-        ];
-
-        let transactions = [...INITIAL_DATA];
+        let transactions = [];
         let pendingDeletes = {}; 
-        let pendingAction = null;
         let exportData = [];
         let currentExportFormat = 'pdf';
         let editingItem = null;
 
-        // Elements
         const monthInput = document.getElementById('monthFilter');
         const dateInput = document.getElementById('date');
         const list = document.getElementById('list');
         const syncStatus = document.getElementById('syncStatus');
         
-        // --- Helpers ---
         const formatMoney = (amount) => '฿' + Math.round(parseFloat(amount)).toLocaleString('en-US');
-        
         const thaiMonthsShort = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
         const formatThaiDate = (dateStr) => {
             const d = new Date(dateStr);
@@ -462,127 +241,104 @@
             if(!isNaN(d)) document.getElementById('dateDisplayText').textContent = `${d.getDate()}/${thaiMonthsShort[d.getMonth()]}/${d.getFullYear() + 543}`;
         };
 
-        // --- Script Loader ---
+        // Script Loader
         function loadScript(src) {
             return new Promise((resolve, reject) => {
                 if (document.querySelector(`script[src="${src}"]`)) { resolve(); return; }
                 const script = document.createElement('script');
-                script.src = src;
-                script.onload = resolve;
-                script.onerror = reject;
-                document.head.appendChild(script);
+                script.src = src; script.onload = resolve; script.onerror = reject; document.head.appendChild(script);
             });
         }
 
-        window.prepareAndLoadLibs = async function(format) {
-            if(exportData.length === 0) { alert('ไม่มีข้อมูลให้ส่งออก'); return; }
-            const btn = event.currentTarget;
-            const originalText = btn.innerHTML;
-            btn.innerHTML = `<div class="loading-spinner w-3 h-3 inline-block"></div> รอสักครู่...`;
-            try {
-                await Promise.all([
-                    loadScript('https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js'),
-                    loadScript('https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js')
-                ]);
-                if (format === 'excel') window.exportExcel(); else window.previewExport(format);
-            } catch (e) { alert("โหลดโปรแกรมส่งออกไม่สำเร็จ"); }
-            btn.innerHTML = originalText;
-        };
-
-        // --- Data Interaction (Hybrid: LocalStorage or API) ---
         async function fetchData() {
-            syncStatus.innerHTML = `<div class="loading-spinner w-3 h-3"></div> กำลังโหลด...`;
-            
-            if (USE_LOCAL_STORAGE) {
-                setTimeout(() => {
-                    const stored = localStorage.getItem(LOCAL_STORAGE_KEY);
-                    if (stored) {
-                         transactions = [...INITIAL_DATA]; 
-                    } else {
-                        transactions = [...INITIAL_DATA];
-                    }
-                    render();
-                    syncStatus.innerHTML = `<span class="text-green-600 font-medium text-[10px]"><i data-lucide="hard-drive" class="w-3 h-3 inline"></i> บันทึกในเครื่อง (ตัวอย่าง)</span>`;
-                    lucide.createIcons();
-                }, 500); 
-            } else {
-                try {
-                    const res = await fetch(GOOGLE_SCRIPT_URL);
-                    const data = await res.json();
-                    
-                    if (data.length === 0 && INITIAL_DATA.length > 0) {
-                         transactions = [...INITIAL_DATA];
-                         render();
-                         syncStatus.innerHTML = `<span class="text-orange-500 text-xs">กำลังเริ่มระบบ... 0%</span>`;
-                         uploadInitialDataRecursive(0);
-                    } else {
-                        transactions = data;
-                        render();
-                        syncStatus.innerHTML = `<span class="text-green-600 font-medium">ซิงค์แล้ว</span>`;
-                    }
-                } catch (e) {
-                    syncStatus.innerHTML = `<span class="text-red-500">ซิงค์ล้มเหลว</span>`;
-                }
-            }
-        }
-
-        async function uploadInitialDataRecursive(index) {
-            if (index >= INITIAL_DATA.length) {
-                syncStatus.innerHTML = `<span class="text-green-600 font-medium">พร้อมใช้งาน</span>`;
-                return;
-            }
-            const item = INITIAL_DATA[index];
+            syncStatus.innerHTML = `<div class="loading-spinner w-3 h-3"></div> กำลังเช็คข้อมูล...`;
             try {
-                await fetch(GOOGLE_SCRIPT_URL, {
-                    method: 'POST',
-                    body: JSON.stringify({ action: 'add', data: item })
+                const res = await fetch(GOOGLE_SCRIPT_URL);
+                const serverData = await res.json();
+                
+                // Mark server data as synced
+                serverData.forEach(item => item.syncStatus = 'synced');
+                
+                // Smart Merge: Keep local items that are pending/uploading/failed
+                // If we have a local item that is 'temp_synced' (optimistic), we KEEP it if it's not in server yet.
+                // This prevents disappearing items.
+                
+                const serverMap = new Map(serverData.map(i => [String(i.id), i]));
+                const merged = [];
+                
+                // 1. Add all server items
+                serverData.forEach(sItem => merged.push(sItem));
+                
+                // 2. Add local items that are NOT in server yet (Pending/Failed/TempSynced)
+                transactions.forEach(local => {
+                    if (!serverMap.has(String(local.id))) {
+                        // If it's any unsynced state, keep it
+                        if (local.syncStatus === 'failed' || local.syncStatus === 'pending' || local.syncStatus === 'temp_synced') {
+                            merged.push(local);
+                        }
+                    }
                 });
-                const percent = Math.round(((index + 1) / INITIAL_DATA.length) * 100);
-                syncStatus.innerHTML = `<span class="text-orange-500 text-xs"><div class="loading-spinner w-2 h-2 inline-block mr-1"></div>กำลังอัปโหลด... ${percent}%</span>`;
-                setTimeout(() => uploadInitialDataRecursive(index + 1), 800); 
+
+                transactions = merged;
+                render();
+                syncStatus.innerHTML = `<span class="text-green-600 font-medium">ออนไลน์</span>`;
+                
             } catch (e) {
-                console.error("Upload failed", e);
-                uploadInitialDataRecursive(index + 1);
+                console.log("Sync error");
+                syncStatus.innerHTML = `<span class="text-orange-500">เชื่อมต่อไม่ได้</span>`;
             }
         }
 
-        async function sendData(action, payload) {
-            syncStatus.innerHTML = `<div class="loading-spinner w-3 h-3"></div> กำลังบันทึก...`;
+        // Generic Sync Function
+        async function syncItem(action, item) {
+            // If it's not a retry (already displayed), we don't need to re-render to show 'pending' because
+            // for Add/Edit we show 'temp_synced' (Green) immediately.
+            // If it IS a retry (failed -> pending), we show spinner.
             
-            if (USE_LOCAL_STORAGE) {
-                setTimeout(() => {
-                    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(transactions));
-                    syncStatus.innerHTML = `<span class="text-green-600 font-medium text-[10px]"><i data-lucide="check" class="w-3 h-3 inline"></i> บันทึกแล้ว</span>`;
-                    lucide.createIcons();
-                }, 300);
-            } else {
-                try {
-                    await fetch(GOOGLE_SCRIPT_URL, {
-                        method: 'POST',
-                        body: JSON.stringify({ action: action, ...payload })
-                    });
-                    fetchData(); 
-                } catch(e) {
-                    alert("บันทึกข้อมูลไม่สำเร็จ");
-                    fetchData(); 
-                }
+            if (item.syncStatus === 'failed') {
+                item.syncStatus = 'pending';
+                render();
+            }
+            
+            // Note: If it's 'temp_synced', we leave it as is (Green) while sending.
+
+            try {
+                const response = await fetch(GOOGLE_SCRIPT_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({ action: action, ...item })
+                });
+                
+                if (!response.ok) throw new Error("Network error");
+                
+                // Success
+                item.syncStatus = 'synced'; // Confirmed
+                render();
+                
+            } catch(e) {
+                // Fail
+                item.syncStatus = 'failed';
+                render(); // Show Red Retry Button
+            }
+        }
+        
+        function retryItem(id) {
+            const item = transactions.find(t => String(t.id) === String(id));
+            if (item) {
+                syncItem('add', { data: item });
             }
         }
 
-        // --- Logic ---
-        // ADD MODAL FUNCTIONS
         function openAddModal() {
-            // Reset fields
             document.getElementById('text').value=''; 
             document.getElementById('amount').value=''; 
             document.getElementById('note').value='';
+            document.querySelector('input[name="type"][value="expense"]').checked = true;
             document.getElementById('addOverlay').classList.add('overlay-visible');
             document.getElementById('addModalContent').classList.add('visible-block');
-            
-            // Set default date to TODAY regardless of what was there
             document.getElementById('date').valueAsDate = new Date();
             updateDateDisplay();
         }
+        
         function closeAddModal() {
             document.getElementById('addOverlay').classList.remove('overlay-visible');
             document.getElementById('addModalContent').classList.remove('visible-block');
@@ -595,17 +351,17 @@
                 amount: parseFloat(document.getElementById('amount').value),
                 type: document.querySelector('input[name="type"]:checked').value,
                 date: document.getElementById('date').value,
-                note: document.getElementById('note').value
+                note: document.getElementById('note').value,
+                syncStatus: 'temp_synced' // Optimistic Success (Green Check immediately)
             };
 
             transactions.push(newData);
+            monthInput.value = document.getElementById('date').value.slice(0,7);
             render();
-            
-            // Close Modal
             closeAddModal();
             
-            monthInput.value = document.getElementById('date').value.slice(0,7);
-            sendData('add', { data: newData });
+            // Send in background
+            syncItem('add', { data: newData });
         }
 
         function markForDeletion(id) {
@@ -620,8 +376,8 @@
             if (pendingDeletes[id]) {
                 delete pendingDeletes[id];
                 transactions = transactions.filter(t => String(t.id) !== String(id));
-                sendData('delete', { id: id });
-                render(); 
+                render();
+                fetch(GOOGLE_SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'delete', id: id }) });
             }
         }
 
@@ -633,15 +389,12 @@
             }
         }
 
-        // Edit Logic
         function openEditModal(item) {
             editingItem = item;
             document.getElementById('edit_text').value = item.text;
             document.getElementById('edit_amount').value = item.amount;
             let dateVal = item.date;
-            if (dateVal && dateVal.length > 10 && dateVal.includes('T')) {
-                dateVal = dateVal.split('T')[0];
-            }
+            if (dateVal && dateVal.length > 10 && dateVal.includes('T')) dateVal = dateVal.split('T')[0];
             document.getElementById('edit_date').value = dateVal;
             document.getElementById('edit_note').value = item.note;
             const radios = document.getElementsByName('edit_type');
@@ -662,15 +415,16 @@
                 amount: parseFloat(document.getElementById('edit_amount').value),
                 type: document.querySelector('input[name="edit_type"]:checked').value,
                 date: document.getElementById('edit_date').value,
-                note: document.getElementById('edit_note').value
+                note: document.getElementById('edit_note').value,
+                syncStatus: 'temp_synced' // Optimistic Success
             };
             const idx = transactions.findIndex(t => String(t.id) === String(editingItem.id));
             if (idx !== -1) { transactions[idx] = updatedData; }
             render(); closeEditModal();
-            sendData('edit', { data: updatedData });
+            
+            syncItem('edit', { data: updatedData });
         }
 
-        // Render
         function render() {
             const selectedMonth = monthInput.value; 
             const [y, m] = selectedMonth.split('-');
@@ -715,8 +469,19 @@
             } else {
                 calculated.forEach(t => {
                     const isPending = !!pendingDeletes[t.id];
-                    
                     const div = document.createElement('div');
+                    
+                    // Determine Status Icon
+                    let statusHtml = '';
+                    if (t.syncStatus === 'failed') {
+                        statusHtml = `<button onclick="retryItem('${t.id}')" class="status-badge status-failed"><i data-lucide="refresh-cw" class="w-3 h-3"></i> ลองอีกครั้ง</button>`;
+                    } else if (t.syncStatus === 'pending') {
+                        statusHtml = `<span class="status-badge status-pending"><i data-lucide="loader-2" class="w-3 h-3 animate-spin"></i></span>`;
+                    } else {
+                        // Synced or Temp_Synced (Both Green)
+                        statusHtml = `<span class="status-badge status-synced"><i data-lucide="check-circle" class="w-3 h-3"></i></span>`;
+                    }
+
                     if (isPending) {
                          div.className = `undo-row flex items-center justify-between p-4 bg-slate-800 rounded-xl shadow-inner text-white mb-3 slide-up`;
                         div.innerHTML = `<div class="flex items-center gap-3"><i data-lucide="trash-2" class="w-5 h-5 text-rose-400"></i><span class="text-sm font-medium">ลบรายการแล้ว</span></div><button data-id="${t.id}" class="undo-btn flex items-center gap-2 text-sm font-bold text-green-400 hover:text-white transition px-3 py-1.5 rounded-lg hover:bg-slate-700"><i data-lucide="rotate-ccw" class="w-4 h-4"></i> เรียกคืน</button>`;
@@ -729,18 +494,15 @@
                                 <div>
                                     <div class="font-medium text-slate-800">${t.text}</div>
                                     ${t.note ? `<div class="text-xs text-slate-500 mt-0.5 italic flex items-center gap-1"><i data-lucide="sticky-note" class="w-3 h-3 opacity-50"></i> ${t.note}</div>` : ''}
-                                    <div class="text-xs text-slate-400 flex items-center gap-1 mt-1"><i data-lucide="calendar" class="w-3 h-3"></i> ${formatThaiDate(t.date)}</div>
+                                    <div class="text-xs text-slate-400 flex items-center gap-1 mt-1">
+                                        <i data-lucide="calendar" class="w-3 h-3"></i> ${formatThaiDate(t.date)}
+                                        ${statusHtml}
+                                    </div>
                                 </div>
                             </div>
                             <div class="flex items-center gap-4">
-                                <div class="text-right">
-                                    <div class="font-bold font-mono ${isInc ? 'text-emerald-600' : 'text-rose-600'}">${isInc ? '+' : '-'}${formatMoney(Number(t.amount)).replace('฿','')}</div>
-                                    <div class="text-xs text-slate-400 font-mono mt-0.5">คงเหลือ ${formatMoney(t.balanceSnapshot)}</div>
-                                </div>
-                                <div class="flex flex-col gap-1">
-                                    <button data-id="${t.id}" class="edit-btn p-2 text-slate-300 hover:text-orange-500 hover:bg-orange-50 rounded-full transition" title="แก้ไข"><i data-lucide="pencil" class="w-4 h-4"></i></button>
-                                    <button data-id="${t.id}" class="delete-btn p-2 text-slate-300 hover:text-rose-500 hover:bg-rose-50 rounded-full transition" title="ลบ"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
-                                </div>
+                                <div class="text-right"><div class="font-bold font-mono ${isInc ? 'text-emerald-600' : 'text-rose-600'}">${isInc ? '+' : '-'}${formatMoney(Number(t.amount)).replace('฿','')}</div><div class="text-xs text-slate-400 font-mono mt-0.5">คงเหลือ ${formatMoney(t.balanceSnapshot)}</div></div>
+                                <div class="flex flex-col gap-1"><button data-id="${t.id}" class="edit-btn p-2 text-slate-300 hover:text-orange-500 hover:bg-orange-50 rounded-full transition" title="แก้ไข"><i data-lucide="pencil" class="w-4 h-4"></i></button><button data-id="${t.id}" class="delete-btn p-2 text-slate-300 hover:text-rose-500 hover:bg-rose-50 rounded-full transition" title="ลบ"><i data-lucide="trash-2" class="w-4 h-4"></i></button></div>
                             </div>`;
                     }
                     list.appendChild(div);
@@ -749,170 +511,54 @@
             lucide.createIcons();
         }
 
-        // Export Logic
         function populateExportTable() {
             const tbody = document.getElementById('exportTableBody'); tbody.innerHTML = '';
             let running = 0, totalInc = 0, totalExp = 0;
-            
-            const sorted = [...exportData].sort((a, b) => { 
-                const d1 = new Date(a.date), d2 = new Date(b.date); 
-                if (d1 - d2 !== 0) return d1 - d2; 
-                return 0; 
-            });
-
+            const sorted = [...exportData].sort((a, b) => { const d1 = new Date(a.date), d2 = new Date(b.date); if (d1 - d2 !== 0) return d1 - d2; return 0; });
             sorted.forEach((t, index) => { 
-                if(t.type === 'income') { running += Number(t.amount); totalInc += Number(t.amount); } 
-                else { running -= Number(t.amount); totalExp += Number(t.amount); } 
-                
+                if(t.type === 'income') { running += Number(t.amount); totalInc += Number(t.amount); } else { running -= Number(t.amount); totalExp += Number(t.amount); } 
                 const tr = document.createElement('tr'); 
-                
-                if (index === 0 || index === sorted.length - 1) {
-                    tr.classList.add('row-bold');
-                }
-
+                if (index === 0 || index === sorted.length - 1) tr.classList.add('row-bold');
                 tr.innerHTML = `<td style="white-space: nowrap;">${formatThaiDateShort(t.date)}</td><td style="color: black;">${t.text}</td><td class="num">${t.type === 'income' ? formatMoney(t.amount).replace('฿','') : '-'}</td><td class="num">${t.type === 'expense' ? formatMoney(t.amount).replace('฿','') : '-'}</td><td class="num">${formatMoney(running).replace('฿','')}</td><td>${t.note || ''}</td>`; 
                 tbody.appendChild(tr); 
             });
-            
             const [y, m] = monthInput.value.split('-'); const label = `${['มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'][parseInt(m)-1]} ${parseInt(y)+543}`;
             document.getElementById('exportMonthTitle').innerText = "ประจำเดือน " + label; document.getElementById('exportTotalIncome').innerText = formatMoney(totalInc).replace('฿',''); document.getElementById('exportTotalExpense').innerText = formatMoney(totalExp).replace('฿',''); document.getElementById('exportTotalBalance').innerText = formatMoney(running).replace('฿',''); document.getElementById('exportPrintDate').innerText = new Date().toLocaleString('th-TH');
         }
         
         window.toggleExportMenu = function(event) {
-            event.stopPropagation();
-            const menu = document.getElementById('exportMenu');
-            const isHidden = menu.classList.contains('hidden');
-            
-            if (isHidden) {
-                menu.classList.remove('hidden');
-            } else {
-                menu.classList.add('hidden');
-            }
+            event.stopPropagation(); const menu = document.getElementById('exportMenu'); menu.classList.toggle('hidden');
         };
-
         document.addEventListener('click', function(event) {
-            const menu = document.getElementById('exportMenu');
-            const container = document.getElementById('exportDropdownContainer');
-            if (!menu.classList.contains('hidden') && !container.contains(event.target)) {
-                menu.classList.add('hidden');
-            }
+            const menu = document.getElementById('exportMenu'); const container = document.getElementById('exportDropdownContainer');
+            if (!menu.classList.contains('hidden') && !container.contains(event.target)) menu.classList.add('hidden');
         });
-
-        window.previewExport = function(format) { 
-            if(exportData.length === 0) { 
-                alert('ไม่มีข้อมูลในเดือนนี้ให้ส่งออกครับ กรุณาเพิ่มรายการก่อน'); 
-                document.getElementById('exportMenu').classList.add('hidden');
-                return; 
-            }
-            currentExportFormat = format; 
-            populateExportTable(); 
-            document.getElementById('exportOverlay').classList.add('overlay-visible'); 
-            document.getElementById('exportModal').classList.add('visible'); 
-            const btn = document.getElementById('downloadActionBtn'); 
-            btn.innerHTML = `<i data-lucide="image-down" class="w-4 h-4"></i> บันทึกเป็น PNG`; 
-            lucide.createIcons(); 
-            document.getElementById('exportMenu').classList.add('hidden'); 
-        };
-
-        window.exportExcel = function() { 
-            if(exportData.length === 0) { 
-                alert('ไม่มีข้อมูลในเดือนนี้ให้ส่งออกครับ กรุณาเพิ่มรายการก่อน'); 
-                document.getElementById('exportMenu').classList.add('hidden');
-                return; 
-            }
-            let running = 0; 
-            const sorted = [...exportData].sort((a, b) => new Date(a.date) - new Date(b.date)); 
-            const excelData = sorted.map(t => { 
-                if(t.type === 'income') running += Number(t.amount); else running -= Number(t.amount); 
-                return { 'วันที่': formatThaiDateShort(t.date), 'รายการ': t.text, 'รายรับ': t.type === 'income' ? t.amount : '', 'รายจ่าย': t.type === 'expense' ? t.amount : '', 'คงเหลือ': running, 'หมายเหตุ': t.note || '' }; 
-            }); 
-            const ws = XLSX.utils.json_to_sheet(excelData); 
-            const wb = XLSX.utils.book_new(); 
-            XLSX.utils.book_append_sheet(wb, ws, "Transactions"); 
-            XLSX.writeFile(wb, `รายงาน_${monthInput.value}.xlsx`); 
-            document.getElementById('exportMenu').classList.add('hidden'); 
-        };
-
+        window.previewExport = function(format) { if(exportData.length===0){alert('ไม่มีข้อมูลให้ส่งออก');return;} currentExportFormat = format; populateExportTable(); document.getElementById('exportOverlay').classList.add('overlay-visible'); document.getElementById('exportModal').classList.add('visible'); document.getElementById('exportMenu').classList.add('hidden'); };
+        window.exportExcel = function() { if(exportData.length===0){alert('ไม่มีข้อมูลให้ส่งออก');return;} let running = 0; const sorted = [...exportData].sort((a, b) => new Date(a.date) - new Date(b.date)); const excelData = sorted.map(t => { if(t.type === 'income') running += Number(t.amount); else running -= Number(t.amount); return { 'วันที่': formatThaiDateShort(t.date), 'รายการ': t.text, 'รายรับ': t.type === 'income' ? t.amount : '', 'รายจ่าย': t.type === 'expense' ? t.amount : '', 'คงเหลือ': running, 'หมายเหตุ': t.note || '' }; }); const ws = XLSX.utils.json_to_sheet(excelData); const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Transactions"); XLSX.writeFile(wb, `รายงาน_${monthInput.value}.xlsx`); document.getElementById('exportMenu').classList.add('hidden'); };
         window.closeExportModal = function() { document.getElementById('exportOverlay').classList.remove('overlay-visible'); document.getElementById('exportModal').classList.remove('visible'); };
         document.getElementById('exportOverlay').addEventListener('click', window.closeExportModal);
         window.processDownload = function() { const element = document.getElementById('printArea'); const btn = document.getElementById('downloadActionBtn'); btn.disabled = true; btn.innerHTML = '<div class="loading-spinner border-white border-t-transparent w-4 h-4"></div>...'; const filename = `รายงาน_${monthInput.value}`; html2canvas(element, { scale: 2, useCORS: true, logging: false }).then(canvas => { const link = document.createElement('a'); link.download = filename + '.png'; link.href = canvas.toDataURL("image/png"); link.click(); btn.disabled = false; btn.innerHTML = `<i data-lucide="image-down" class="w-4 h-4"></i> บันทึกเป็น PNG`; lucide.createIcons(); }); };
 
-        // Login Screen Logic
-        const loginPinInput = document.getElementById('loginPinInput');
-        const loginError = document.getElementById('loginError');
-        const loginScreen = document.getElementById('loginScreen');
-
-        function showPinEntry() {
-            document.getElementById('welcomeSection').classList.add('hidden');
-            document.getElementById('pinEntrySection').classList.remove('hidden');
-            document.getElementById('pinEntrySection').classList.add('flex');
-        }
-
-        function hidePinEntry() {
-            document.getElementById('welcomeSection').classList.remove('hidden');
-            document.getElementById('pinEntrySection').classList.add('hidden');
-            document.getElementById('pinEntrySection').classList.remove('flex');
-        }
-
-        function appendLoginPin(num) {
-            if (loginPinInput.value.length < 4) {
-                loginPinInput.value += num;
-                // Auto check if 4 digits
-                if (loginPinInput.value.length === 4) {
-                    setTimeout(checkLogin, 100);
-                }
-            }
-        }
-
-        function backspaceLoginPin() {
-            loginPinInput.value = loginPinInput.value.slice(0, -1);
-            loginError.style.opacity = '0';
-        }
-
-        function checkLogin() {
-            if (loginPinInput.value === CORRECT_PIN) {
-                // Success
-                loginScreen.classList.add('login-hidden');
-                // Remove from DOM after animation to prevent interfering with layout
-                setTimeout(() => {
-                    loginScreen.style.display = 'none';
-                }, 500);
-            } else {
-                // Error
-                loginError.style.opacity = '1';
-                loginPinInput.classList.add('border-rose-500', 'text-rose-500');
-                
-                // Shake effect
-                setTimeout(() => {
-                    loginPinInput.value = '';
-                    loginPinInput.classList.remove('border-rose-500', 'text-rose-500');
-                    // Keep error message visible until they type again or after a delay
-                }, 500);
-            }
-        }
+        // Auth & Login
+        const loginPinInput = document.getElementById('loginPinInput'); const loginError = document.getElementById('loginError'); const loginScreen = document.getElementById('loginScreen');
+        function showPinEntry() { document.getElementById('welcomeSection').classList.add('hidden'); document.getElementById('pinEntrySection').classList.remove('hidden'); document.getElementById('pinEntrySection').classList.add('flex'); }
+        function hidePinEntry() { document.getElementById('welcomeSection').classList.remove('hidden'); document.getElementById('pinEntrySection').classList.add('hidden'); document.getElementById('pinEntrySection').classList.remove('flex'); }
+        function appendLoginPin(num) { if (loginPinInput.value.length < 4) { loginPinInput.value += num; if (loginPinInput.value.length === 4) setTimeout(checkLogin, 100); } }
+        function backspaceLoginPin() { loginPinInput.value = loginPinInput.value.slice(0, -1); loginError.style.opacity = '0'; }
+        function checkLogin() { if (loginPinInput.value === CORRECT_PIN) { loginScreen.classList.add('login-hidden'); setTimeout(() => { loginScreen.style.display = 'none'; }, 500); } else { loginError.style.opacity = '1'; loginPinInput.classList.add('border-rose-500', 'text-rose-500'); setTimeout(() => { loginPinInput.value = ''; loginPinInput.classList.remove('border-rose-500', 'text-rose-500'); }, 500); } }
         
-        // Listeners
         document.getElementById('transactionForm').onsubmit = (e) => { e.preventDefault(); doAdd(); };
         document.getElementById('editForm').onsubmit = (e) => { e.preventDefault(); doUpdate(); };
-        list.onclick = (e) => { 
-            const delBtn = e.target.closest('.delete-btn'); 
-            if(delBtn) markForDeletion(delBtn.dataset.id); 
-            const undoBtn = e.target.closest('.undo-btn'); 
-            if(undoBtn) doUndo(undoBtn.dataset.id); 
-            const editBtn = e.target.closest('.edit-btn');
-            if(editBtn) {
-                 const item = transactions.find(t => String(t.id) === String(editBtn.dataset.id));
-                 if(item) openEditModal(item);
-            }
-        };
+        list.onclick = (e) => { const delBtn = e.target.closest('.delete-btn'); if(delBtn) markForDeletion(delBtn.dataset.id); const undoBtn = e.target.closest('.undo-btn'); if(undoBtn) doUndo(undoBtn.dataset.id); const editBtn = e.target.closest('.edit-btn'); if(editBtn) { const item = transactions.find(t => String(t.id) === String(editBtn.dataset.id)); if(item) openEditModal(item); } };
         document.getElementById('addOverlay').addEventListener('click', closeAddModal);
 
-        // Start
-        monthInput.value = '2025-11';
-        dateInput.valueAsDate = new Date('2025-11-01'); 
+        // Init (Online Only)
+        monthInput.value = new Date().toISOString().slice(0,7); // Default to current month
+        dateInput.valueAsDate = new Date();
         updateDateDisplay();
-        
         monthInput.onchange = render; dateInput.onchange = updateDateDisplay;
+        
+        // Load data once at startup
         fetchData();
     </script>
 </body>
