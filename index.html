@@ -17,10 +17,8 @@
             touch-action: manipulation; 
             -webkit-text-size-adjust: 100%;
         }
-        /* Force Prompt font everywhere, overriding monospace defaults */
-        code, kbd, samp, pre, .font-mono {
-            font-family: 'Prompt', sans-serif !important;
-        }
+        /* Force Prompt font everywhere */
+        code, kbd, samp, pre, .font-mono { font-family: 'Prompt', sans-serif !important; }
 
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
@@ -29,31 +27,84 @@
         @keyframes slideIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
         .undo-row { animation: slideIn 0.3s ease-out; }
         
-        .print-table { border-collapse: collapse; width: 100%; font-family: 'Prompt', sans-serif; color: #000; }
-        .print-table th, .print-table td { border: 1px solid #64748b; padding: 6px 8px; text-align: left; font-size: 11px; }
-        .print-table th { background-color: #e2e8f0; color: #1e293b; font-weight: 600; text-align: center; white-space: nowrap; }
-        .print-table td.num { text-align: right; font-weight: 500; font-family: 'Prompt', sans-serif; } /* Ensure Prompt font for numbers */
-        .print-table tr.row-bold td { font-weight: 700 !important; background-color: #f1f5f9; }
-        .print-table tfoot td { font-weight: 700 !important; font-size: 12px; background-color: #f8fafc; }
+        /* --- PASTEL THEME EXPORT TABLE --- */
+        #printArea { 
+            background: white; 
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1); 
+            padding: 40px; 
+            width: 210mm; /* A4 Width */
+            min-height: 297mm; 
+            margin: auto; 
+            color: #334155;
+            border-radius: 16px;
+            font-family: 'Prompt', sans-serif;
+        }
 
+        .print-table { 
+            width: 100%; 
+            border-collapse: separate; 
+            border-spacing: 0; 
+            border-radius: 16px; /* Rounded corners */
+            overflow: hidden; 
+            border: 1px solid #e2e8f0;
+            margin-top: 20px;
+        }
+
+        .print-table th { 
+            background-color: #d1fae5; /* Pastel Mint Green */
+            color: #065f46; 
+            font-weight: 600; 
+            text-align: center; 
+            padding: 14px 10px; 
+            font-size: 13px; 
+            border-bottom: 1px solid #a7f3d0;
+        }
+
+        .print-table td { 
+            padding: 12px 14px; 
+            text-align: left; 
+            font-size: 12px; 
+            border-bottom: 1px solid #f1f5f9;
+            vertical-align: top;
+            color: #475569;
+        }
+
+        .print-table td.num { 
+            text-align: right; 
+            font-weight: 500; 
+            font-family: 'Prompt', sans-serif; 
+            font-variant-numeric: tabular-nums;
+        }
+
+        /* Pastel Row Highlights */
+        .print-table tr.row-bold td { 
+            background-color: #eff6ff !important; /* Pastel Baby Blue */
+            color: #1e40af;
+            font-weight: 600;
+        }
+
+        .print-table tfoot td { 
+            background-color: #fff1f2; /* Pastel Soft Pink */
+            color: #be123c;
+            font-weight: 700 !important; 
+            font-size: 13px; 
+            padding: 16px 14px;
+            border-top: 2px solid #fecdd3;
+        }
+
+        .print-header { text-align: center; margin-bottom: 30px; }
+        .print-header h1 { font-size: 22px; font-weight: 700; color: #1e293b; margin-bottom: 4px; }
+        .print-header p { font-size: 14px; color: #64748b; font-weight: 500; }
+
+        /* Modals & UI */
         #exportOverlay, #editOverlay, #addOverlay { position: fixed; inset: 0; background: rgba(0,0,0,0.75); z-index: 90; display: none; backdrop-filter: blur(4px); }
-        #exportModal { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0.95); width: 95%; max-width: 1000px; height: 90vh; background: white; border-radius: 16px; z-index: 100; display: none; flex-direction: column; opacity: 0; transition: all 0.3s ease; }
-        #editModalContent, #addModalContent { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0.95); width: 95%; max-width: 500px; background: white; border-radius: 16px; z-index: 100; display: none; padding: 24px; opacity: 0; transition: all 0.3s ease; }
+        #exportModal { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0.95); width: 95%; max-width: 1000px; height: 90vh; background: white; border-radius: 24px; z-index: 100; display: none; flex-direction: column; opacity: 0; transition: all 0.3s ease; }
+        #editModalContent, #addModalContent { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0.95); width: 95%; max-width: 500px; background: white; border-radius: 24px; z-index: 100; display: none; padding: 24px; opacity: 0; transition: all 0.3s ease; }
         
         .visible { display: flex !important; opacity: 1 !important; transform: translate(-50%, -50%) scale(1) !important; }
         .visible-block { display: block !important; opacity: 1 !important; transform: translate(-50%, -50%) scale(1) !important; }
         .overlay-visible { display: block !important; }
         
-        #printArea { 
-            background: white; 
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); 
-            padding: 40px; 
-            width: 297mm; 
-            min-height: 210mm; 
-            margin: auto; 
-            color: #1e293b;
-        }
-
         .fab-btn { position: fixed; bottom: 24px; right: 24px; width: 56px; height: 56px; border-radius: 50%; background-color: #16a34a; color: white; display: flex; align-items: center; justify-content: center; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); transition: transform 0.2s, background-color 0.2s; z-index: 50; border: 2px solid white; touch-action: manipulation; }
         .fab-btn:hover { transform: scale(1.1); background-color: #15803d; }
         .fab-btn:active { transform: scale(0.95); }
@@ -65,13 +116,8 @@
         .num-btn:active { background-color: #f0fdf4; transform: scale(0.95); border-color: #86efac; }
         .num-btn-action { background-color: transparent; border-color: transparent; box-shadow: none; color: #64748b; }
         
-        /* Updated: Textarea styles for multi-line input */
-        textarea.form-input {
-            resize: none;
-            min-height: 42px; /* similar to text input height */
-            line-height: 1.5;
-        }
-
+        /* Textarea styles */
+        textarea.form-input { resize: none; min-height: 42px; line-height: 1.5; }
         input, select, textarea, button { font-size: 16px; touch-action: manipulation; font-family: 'Prompt', sans-serif; }
 
         .status-badge { display: inline-flex; align-items: center; gap: 4px; font-size: 10px; padding: 2px 6px; border-radius: 12px; margin-left: 6px; white-space: nowrap; }
@@ -91,7 +137,7 @@
                 <div class="text-center"><h1 class="text-3xl font-bold text-slate-800 tracking-tight">MyPocket <span class="text-sm bg-green-600 text-white px-2 py-1 rounded-lg align-middle ml-1">Lite</span></h1><p class="text-slate-500 mt-2">บันทึกรายรับรายจ่าย ง่ายๆ แค่ปลายนิ้ว</p></div>
             </div>
             <button onclick="showPinEntry()" class="w-full bg-green-600 hover:bg-green-700 text-white text-lg font-bold py-4 rounded-2xl shadow-lg shadow-green-200 transition transform active:scale-95 flex items-center justify-center gap-2 group"><span>เข้าสู่ระบบ</span><i data-lucide="arrow-right" class="w-5 h-5 group-hover:translate-x-1 transition-transform"></i></button>
-            <div class="mt-12 text-center"><p class="text-slate-400 text-xs">Version 2.5 (Prompt Font & Smart Input)</p></div>
+            <div class="mt-12 text-center"><p class="text-slate-400 text-xs">Version 2.6 (Pastel Export)</p></div>
         </div>
         <div id="pinEntrySection" class="hidden flex-col items-center w-full max-w-sm px-6">
             <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4 text-green-600 shadow-sm"><i data-lucide="lock" class="w-8 h-8"></i></div>
@@ -169,10 +215,8 @@
                 <label class="cursor-pointer"><input type="radio" name="type" value="income" class="peer sr-only"><div class="rounded-xl border-2 border-slate-100 p-2 text-center hover:bg-slate-50 peer-checked:border-emerald-400 peer-checked:bg-emerald-50 peer-checked:text-emerald-600 text-sm">รายรับ</div></label>
                 <label class="cursor-pointer"><input type="radio" name="type" value="expense" class="peer sr-only" checked><div class="rounded-xl border-2 border-slate-100 p-2 text-center hover:bg-slate-50 peer-checked:border-rose-400 peer-checked:bg-rose-50 peer-checked:text-rose-600 text-sm">รายจ่าย</div></label>
             </div>
-            <!-- Modified to Textarea for multiline -->
             <textarea id="text" required placeholder="ชื่อรายการ" class="form-input w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:border-green-500 outline-none text-sm"></textarea>
             <input type="number" id="amount" step="1" required placeholder="0" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:border-green-500 outline-none text-sm">
-            <!-- Modified to Textarea for multiline -->
             <textarea id="note" placeholder="หมายเหตุ (ถ้ามี)" class="form-input w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:border-green-500 outline-none text-sm"></textarea>
             <div class="relative">
                 <label class="block text-sm font-medium text-slate-700 mb-1">วันที่</label>
@@ -194,10 +238,8 @@
                 <label class="cursor-pointer"><input type="radio" name="edit_type" value="income" class="peer sr-only"><div class="rounded-xl border-2 border-slate-100 p-2 text-center hover:bg-slate-50 peer-checked:border-emerald-400 peer-checked:bg-emerald-50 peer-checked:text-emerald-600 text-sm">รายรับ</div></label>
                 <label class="cursor-pointer"><input type="radio" name="edit_type" value="expense" class="peer sr-only"><div class="rounded-xl border-2 border-slate-100 p-2 text-center hover:bg-slate-50 peer-checked:border-rose-400 peer-checked:bg-rose-50 peer-checked:text-rose-600 text-sm">รายจ่าย</div></label>
             </div>
-            <!-- Modified to Textarea -->
             <textarea id="edit_text" required class="form-input w-full px-4 py-2 rounded-xl border border-slate-200 focus:border-orange-500 outline-none text-sm" placeholder="ชื่อรายการ"></textarea>
             <input type="number" id="edit_amount" step="1" required class="w-full px-4 py-2 rounded-xl border border-slate-200 focus:border-orange-500 outline-none text-sm" placeholder="0">
-            <!-- Modified to Textarea -->
             <textarea id="edit_note" class="form-input w-full px-4 py-2 rounded-xl border border-slate-200 focus:border-orange-500 outline-none text-sm" placeholder="หมายเหตุ"></textarea>
             <input type="date" id="edit_date" required class="w-full px-4 py-2 rounded-xl border border-slate-200 focus:border-orange-500 outline-none text-sm text-slate-600">
             <div class="grid grid-cols-2 gap-3 pt-2">
@@ -216,7 +258,7 @@
         </div>
         <div class="overflow-y-auto p-8 bg-slate-200 flex-grow custom-scrollbar flex justify-center items-start">
             <div id="printArea">
-                <div class="text-center mb-6"><h1 class="text-2xl font-bold text-slate-800 mb-1">รายงานรายรับรายจ่าย</h1><p id="exportMonthTitle" class="text-slate-500 font-medium text-base tracking-wide">เดือน...</p></div>
+                <div class="print-header"><h1 class="text-2xl font-bold text-slate-800 mb-1">รายงานรายรับรายจ่าย</h1><p id="exportMonthTitle" class="text-slate-500 font-medium text-base tracking-wide">เดือน...</p></div>
                 <table class="print-table">
                     <thead><tr><th style="width: 1%; white-space: nowrap;">ว/ด/ป</th><th style="width: auto;">รายการ</th><th style="width: 13%">รายรับ</th><th style="width: 13%">รายจ่าย</th><th style="width: 14%">คงเหลือ</th><th style="width: 15%">หมายเหตุ</th></tr></thead>
                     <tbody id="exportTableBody"></tbody>
