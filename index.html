@@ -17,15 +17,22 @@
             touch-action: manipulation; 
             -webkit-text-size-adjust: 100%;
         }
+        /* Force Prompt font everywhere, overriding monospace defaults */
+        code, kbd, samp, pre, .font-mono {
+            font-family: 'Prompt', sans-serif !important;
+        }
+
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
         @keyframes pulse { 0% { opacity: 1; } 50% { opacity: .5; } }
         .animate-pulse { animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
+        @keyframes slideIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+        .undo-row { animation: slideIn 0.3s ease-out; }
         
         .print-table { border-collapse: collapse; width: 100%; font-family: 'Prompt', sans-serif; color: #000; }
         .print-table th, .print-table td { border: 1px solid #64748b; padding: 6px 8px; text-align: left; font-size: 11px; }
         .print-table th { background-color: #e2e8f0; color: #1e293b; font-weight: 600; text-align: center; white-space: nowrap; }
-        .print-table td.num { text-align: right; font-family: monospace; font-weight: 500; }
+        .print-table td.num { text-align: right; font-weight: 500; font-family: 'Prompt', sans-serif; } /* Ensure Prompt font for numbers */
         .print-table tr.row-bold td { font-weight: 700 !important; background-color: #f1f5f9; }
         .print-table tfoot td { font-weight: 700 !important; font-size: 12px; background-color: #f8fafc; }
 
@@ -58,9 +65,15 @@
         .num-btn:active { background-color: #f0fdf4; transform: scale(0.95); border-color: #86efac; }
         .num-btn-action { background-color: transparent; border-color: transparent; box-shadow: none; color: #64748b; }
         
-        input, select, textarea, button { font-size: 16px; touch-action: manipulation; }
+        /* Updated: Textarea styles for multi-line input */
+        textarea.form-input {
+            resize: none;
+            min-height: 42px; /* similar to text input height */
+            line-height: 1.5;
+        }
 
-        /* Status Badges */
+        input, select, textarea, button { font-size: 16px; touch-action: manipulation; font-family: 'Prompt', sans-serif; }
+
         .status-badge { display: inline-flex; align-items: center; gap: 4px; font-size: 10px; padding: 2px 6px; border-radius: 12px; margin-left: 6px; white-space: nowrap; }
         .status-synced { color: #16a34a; background-color: #dcfce7; border: 1px solid #bbf7d0; }
         .status-failed { color: #dc2626; background-color: #fee2e2; border: 1px solid #fecaca; cursor: pointer; transition: all 0.2s; }
@@ -78,13 +91,13 @@
                 <div class="text-center"><h1 class="text-3xl font-bold text-slate-800 tracking-tight">MyPocket <span class="text-sm bg-green-600 text-white px-2 py-1 rounded-lg align-middle ml-1">Lite</span></h1><p class="text-slate-500 mt-2">บันทึกรายรับรายจ่าย ง่ายๆ แค่ปลายนิ้ว</p></div>
             </div>
             <button onclick="showPinEntry()" class="w-full bg-green-600 hover:bg-green-700 text-white text-lg font-bold py-4 rounded-2xl shadow-lg shadow-green-200 transition transform active:scale-95 flex items-center justify-center gap-2 group"><span>เข้าสู่ระบบ</span><i data-lucide="arrow-right" class="w-5 h-5 group-hover:translate-x-1 transition-transform"></i></button>
-            <div class="mt-12 text-center"><p class="text-slate-400 text-xs">Version 2.3 (Instant UI)</p></div>
+            <div class="mt-12 text-center"><p class="text-slate-400 text-xs">Version 2.5 (Prompt Font & Smart Input)</p></div>
         </div>
         <div id="pinEntrySection" class="hidden flex-col items-center w-full max-w-sm px-6">
             <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4 text-green-600 shadow-sm"><i data-lucide="lock" class="w-8 h-8"></i></div>
             <h2 class="text-xl font-bold text-slate-800 mb-1">ใส่รหัสผ่าน</h2>
             <p class="text-slate-500 text-sm mb-8">กรุณากรอกรหัส 4 หลักเพื่อเข้าใช้งาน</p>
-            <div class="relative mb-2 w-full max-w-[200px]"><input type="password" id="loginPinInput" maxlength="4" inputmode="none" readonly placeholder="••••" autocomplete="off" class="w-full text-center text-4xl tracking-[0.5em] py-2 border-b-2 border-slate-300 focus:border-green-500 outline-none font-mono bg-transparent text-slate-800 transition-colors cursor-default"></div>
+            <div class="relative mb-2 w-full max-w-[200px]"><input type="password" id="loginPinInput" maxlength="4" inputmode="none" readonly placeholder="••••" autocomplete="off" class="w-full text-center text-4xl tracking-[0.5em] py-2 border-b-2 border-slate-300 focus:border-green-500 outline-none bg-transparent text-slate-800 transition-colors cursor-default"></div>
             <div id="loginError" class="text-rose-500 text-sm font-medium h-6 mb-4 opacity-0 transition-opacity flex items-center gap-1"><i data-lucide="alert-circle" class="w-4 h-4"></i> รหัสผ่านไม่ถูกต้อง</div>
             <div class="grid grid-cols-3 gap-x-6 gap-y-5 mb-8">
                 <button class="num-btn" onclick="appendLoginPin('1')">1</button><button class="num-btn" onclick="appendLoginPin('2')">2</button><button class="num-btn" onclick="appendLoginPin('3')">3</button>
@@ -156,9 +169,11 @@
                 <label class="cursor-pointer"><input type="radio" name="type" value="income" class="peer sr-only"><div class="rounded-xl border-2 border-slate-100 p-2 text-center hover:bg-slate-50 peer-checked:border-emerald-400 peer-checked:bg-emerald-50 peer-checked:text-emerald-600 text-sm">รายรับ</div></label>
                 <label class="cursor-pointer"><input type="radio" name="type" value="expense" class="peer sr-only" checked><div class="rounded-xl border-2 border-slate-100 p-2 text-center hover:bg-slate-50 peer-checked:border-rose-400 peer-checked:bg-rose-50 peer-checked:text-rose-600 text-sm">รายจ่าย</div></label>
             </div>
-            <input type="text" id="text" required placeholder="ชื่อรายการ" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:border-green-500 outline-none text-sm">
-            <input type="number" id="amount" step="1" required placeholder="0" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:border-green-500 outline-none text-sm font-mono">
-            <input type="text" id="note" placeholder="หมายเหตุ (ถ้ามี)" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:border-green-500 outline-none text-sm">
+            <!-- Modified to Textarea for multiline -->
+            <textarea id="text" required placeholder="ชื่อรายการ" class="form-input w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:border-green-500 outline-none text-sm"></textarea>
+            <input type="number" id="amount" step="1" required placeholder="0" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:border-green-500 outline-none text-sm">
+            <!-- Modified to Textarea for multiline -->
+            <textarea id="note" placeholder="หมายเหตุ (ถ้ามี)" class="form-input w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:border-green-500 outline-none text-sm"></textarea>
             <div class="relative">
                 <label class="block text-sm font-medium text-slate-700 mb-1">วันที่</label>
                 <div class="relative group"><div class="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-600 text-sm flex items-center justify-between group-hover:border-green-300 transition"><span id="dateDisplayText">...</span><i data-lucide="calendar" class="w-4 h-4 opacity-50 text-green-500"></i></div><input type="date" id="date" required class="absolute inset-0 w-full h-full opacity-0 cursor-pointer"></div>
@@ -179,9 +194,11 @@
                 <label class="cursor-pointer"><input type="radio" name="edit_type" value="income" class="peer sr-only"><div class="rounded-xl border-2 border-slate-100 p-2 text-center hover:bg-slate-50 peer-checked:border-emerald-400 peer-checked:bg-emerald-50 peer-checked:text-emerald-600 text-sm">รายรับ</div></label>
                 <label class="cursor-pointer"><input type="radio" name="edit_type" value="expense" class="peer sr-only"><div class="rounded-xl border-2 border-slate-100 p-2 text-center hover:bg-slate-50 peer-checked:border-rose-400 peer-checked:bg-rose-50 peer-checked:text-rose-600 text-sm">รายจ่าย</div></label>
             </div>
-            <input type="text" id="edit_text" required class="w-full px-4 py-2 rounded-xl border border-slate-200 focus:border-orange-500 outline-none text-sm" placeholder="ชื่อรายการ">
-            <input type="number" id="edit_amount" step="1" required class="w-full px-4 py-2 rounded-xl border border-slate-200 focus:border-orange-500 outline-none text-sm font-mono" placeholder="0">
-            <input type="text" id="edit_note" class="w-full px-4 py-2 rounded-xl border border-slate-200 focus:border-orange-500 outline-none text-sm" placeholder="หมายเหตุ">
+            <!-- Modified to Textarea -->
+            <textarea id="edit_text" required class="form-input w-full px-4 py-2 rounded-xl border border-slate-200 focus:border-orange-500 outline-none text-sm" placeholder="ชื่อรายการ"></textarea>
+            <input type="number" id="edit_amount" step="1" required class="w-full px-4 py-2 rounded-xl border border-slate-200 focus:border-orange-500 outline-none text-sm" placeholder="0">
+            <!-- Modified to Textarea -->
+            <textarea id="edit_note" class="form-input w-full px-4 py-2 rounded-xl border border-slate-200 focus:border-orange-500 outline-none text-sm" placeholder="หมายเหตุ"></textarea>
             <input type="date" id="edit_date" required class="w-full px-4 py-2 rounded-xl border border-slate-200 focus:border-orange-500 outline-none text-sm text-slate-600">
             <div class="grid grid-cols-2 gap-3 pt-2">
                 <button type="button" onclick="closeEditModal()" class="py-2 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 text-sm">ยกเลิก</button>
@@ -198,8 +215,8 @@
             <div class="flex gap-2"><button onclick="closeExportModal()" class="px-4 py-2 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-200 transition">ปิด</button><button onclick="processDownload()" id="downloadActionBtn" class="px-4 py-2 rounded-lg text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 shadow-lg shadow-indigo-200 transition flex items-center gap-2"><i data-lucide="download" class="w-4 h-4"></i> ดาวน์โหลด</button></div>
         </div>
         <div class="overflow-y-auto p-8 bg-slate-200 flex-grow custom-scrollbar flex justify-center items-start">
-            <div id="printArea" class="text-slate-900">
-                <div class="text-center mb-6"><h1 class="text-xl font-bold text-slate-800 mb-2">รายงานรายรับรายจ่าย</h1><p id="exportMonthTitle" class="text-slate-500 font-medium text-base">เดือน...</p></div>
+            <div id="printArea">
+                <div class="text-center mb-6"><h1 class="text-2xl font-bold text-slate-800 mb-1">รายงานรายรับรายจ่าย</h1><p id="exportMonthTitle" class="text-slate-500 font-medium text-base tracking-wide">เดือน...</p></div>
                 <table class="print-table">
                     <thead><tr><th style="width: 1%; white-space: nowrap;">ว/ด/ป</th><th style="width: auto;">รายการ</th><th style="width: 13%">รายรับ</th><th style="width: 13%">รายจ่าย</th><th style="width: 14%">คงเหลือ</th><th style="width: 15%">หมายเหตุ</th></tr></thead>
                     <tbody id="exportTableBody"></tbody>
@@ -226,6 +243,13 @@
         const list = document.getElementById('list');
         const syncStatus = document.getElementById('syncStatus');
         
+        // Auto-clean input for amount fields
+        ['amount', 'edit_amount'].forEach(id => {
+            document.getElementById(id).addEventListener('input', function(e) {
+                this.value = this.value.replace(/[, ]/g, '');
+            });
+        });
+
         const formatMoney = (amount) => '฿' + Math.round(parseFloat(amount)).toLocaleString('en-US');
         const thaiMonthsShort = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
         const formatThaiDate = (dateStr) => {
@@ -256,12 +280,8 @@
                 const res = await fetch(GOOGLE_SCRIPT_URL);
                 const serverData = await res.json();
                 
-                // Mark server data as synced
+                // Mark all server items as synced
                 serverData.forEach(item => item.syncStatus = 'synced');
-                
-                // Smart Merge: Keep local items that are pending/uploading/failed
-                // If we have a local item that is 'temp_synced' (optimistic), we KEEP it if it's not in server yet.
-                // This prevents disappearing items.
                 
                 const serverMap = new Map(serverData.map(i => [String(i.id), i]));
                 const merged = [];
@@ -272,7 +292,6 @@
                 // 2. Add local items that are NOT in server yet (Pending/Failed/TempSynced)
                 transactions.forEach(local => {
                     if (!serverMap.has(String(local.id))) {
-                        // If it's any unsynced state, keep it
                         if (local.syncStatus === 'failed' || local.syncStatus === 'pending' || local.syncStatus === 'temp_synced') {
                             merged.push(local);
                         }
@@ -289,35 +308,34 @@
             }
         }
 
-        // Generic Sync Function
         async function syncItem(action, item) {
-            // If it's not a retry (already displayed), we don't need to re-render to show 'pending' because
-            // for Add/Edit we show 'temp_synced' (Green) immediately.
-            // If it IS a retry (failed -> pending), we show spinner.
-            
             if (item.syncStatus === 'failed') {
                 item.syncStatus = 'pending';
                 render();
             }
             
-            // Note: If it's 'temp_synced', we leave it as is (Green) while sending.
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 sec timeout
 
             try {
                 const response = await fetch(GOOGLE_SCRIPT_URL, {
                     method: 'POST',
-                    body: JSON.stringify({ action: action, ...item })
+                    body: JSON.stringify({ action: action, ...item }),
+                    signal: controller.signal
                 });
+                clearTimeout(timeoutId);
                 
                 if (!response.ok) throw new Error("Network error");
                 
                 // Success
-                item.syncStatus = 'synced'; // Confirmed
+                item.syncStatus = 'synced';
                 render();
                 
             } catch(e) {
+                clearTimeout(timeoutId);
                 // Fail
                 item.syncStatus = 'failed';
-                render(); // Show Red Retry Button
+                render();
             }
         }
         
@@ -352,15 +370,13 @@
                 type: document.querySelector('input[name="type"]:checked').value,
                 date: document.getElementById('date').value,
                 note: document.getElementById('note').value,
-                syncStatus: 'temp_synced' // Optimistic Success (Green Check immediately)
+                syncStatus: 'temp_synced' 
             };
 
             transactions.push(newData);
             monthInput.value = document.getElementById('date').value.slice(0,7);
             render();
             closeAddModal();
-            
-            // Send in background
             syncItem('add', { data: newData });
         }
 
@@ -416,12 +432,11 @@
                 type: document.querySelector('input[name="edit_type"]:checked').value,
                 date: document.getElementById('edit_date').value,
                 note: document.getElementById('edit_note').value,
-                syncStatus: 'temp_synced' // Optimistic Success
+                syncStatus: 'temp_synced'
             };
             const idx = transactions.findIndex(t => String(t.id) === String(editingItem.id));
             if (idx !== -1) { transactions[idx] = updatedData; }
             render(); closeEditModal();
-            
             syncItem('edit', { data: updatedData });
         }
 
@@ -436,7 +451,7 @@
             
             filtered.sort((a, b) => { 
                 const d1 = new Date(a.date); const d2 = new Date(b.date); 
-                if(d1-d2 !== 0) return d1-d2; 
+                if(d1 - d2 !== 0) return d1 - d2; 
                 return a.id - b.id; 
             });
 
@@ -450,7 +465,7 @@
 
             calculated.sort((a, b) => { 
                 const d1 = new Date(a.date); const d2 = new Date(b.date); 
-                if(d2-d1 !== 0) return d2-d1; 
+                if(d2 - d1 !== 0) return d2 - d1; 
                 return b.id - a.id; 
             });
 
@@ -471,14 +486,12 @@
                     const isPending = !!pendingDeletes[t.id];
                     const div = document.createElement('div');
                     
-                    // Determine Status Icon
                     let statusHtml = '';
                     if (t.syncStatus === 'failed') {
                         statusHtml = `<button onclick="retryItem('${t.id}')" class="status-badge status-failed"><i data-lucide="refresh-cw" class="w-3 h-3"></i> ลองอีกครั้ง</button>`;
                     } else if (t.syncStatus === 'pending') {
                         statusHtml = `<span class="status-badge status-pending"><i data-lucide="loader-2" class="w-3 h-3 animate-spin"></i></span>`;
                     } else {
-                        // Synced or Temp_Synced (Both Green)
                         statusHtml = `<span class="status-badge status-synced"><i data-lucide="check-circle" class="w-3 h-3"></i></span>`;
                     }
 
@@ -488,12 +501,16 @@
                     } else {
                         const isInc = t.type === 'income'; 
                         div.className = `group flex items-center justify-between p-4 bg-white rounded-xl border border-slate-100 shadow-sm transition hover:shadow-md ${isInc ? 'hover:border-emerald-200' : 'hover:border-rose-200'} mb-3`;
+                        // Support multiline text display
+                        const displayText = t.text.replace(/\n/g, '<br>');
+                        const displayNote = t.note ? t.note.replace(/\n/g, '<br>') : '';
+                        
                         div.innerHTML = `
                             <div class="flex items-center gap-4">
                                 <div class="w-10 h-10 rounded-full ${isInc ? 'bg-emerald-100 text-emerald-600' : 'bg-rose-100 text-rose-600'} flex items-center justify-center flex-shrink-0"><i data-lucide="${isInc ? 'arrow-up' : 'arrow-down'}" class="w-5 h-5"></i></div>
                                 <div>
-                                    <div class="font-medium text-slate-800">${t.text}</div>
-                                    ${t.note ? `<div class="text-xs text-slate-500 mt-0.5 italic flex items-center gap-1"><i data-lucide="sticky-note" class="w-3 h-3 opacity-50"></i> ${t.note}</div>` : ''}
+                                    <div class="font-medium text-slate-800">${displayText}</div>
+                                    ${displayNote ? `<div class="text-xs text-slate-500 mt-0.5 italic flex items-center gap-1"><i data-lucide="sticky-note" class="w-3 h-3 opacity-50"></i> ${displayNote}</div>` : ''}
                                     <div class="text-xs text-slate-400 flex items-center gap-1 mt-1">
                                         <i data-lucide="calendar" class="w-3 h-3"></i> ${formatThaiDate(t.date)}
                                         ${statusHtml}
@@ -514,12 +531,21 @@
         function populateExportTable() {
             const tbody = document.getElementById('exportTableBody'); tbody.innerHTML = '';
             let running = 0, totalInc = 0, totalExp = 0;
-            const sorted = [...exportData].sort((a, b) => { const d1 = new Date(a.date), d2 = new Date(b.date); if (d1 - d2 !== 0) return d1 - d2; return 0; });
+            const sorted = [...exportData].sort((a, b) => { 
+                const d1 = new Date(a.date), d2 = new Date(b.date); 
+                if (d1 - d2 !== 0) return d1 - d2; 
+                return a.id - b.id; 
+            });
+
             sorted.forEach((t, index) => { 
                 if(t.type === 'income') { running += Number(t.amount); totalInc += Number(t.amount); } else { running -= Number(t.amount); totalExp += Number(t.amount); } 
                 const tr = document.createElement('tr'); 
                 if (index === 0 || index === sorted.length - 1) tr.classList.add('row-bold');
-                tr.innerHTML = `<td style="white-space: nowrap;">${formatThaiDateShort(t.date)}</td><td style="color: black;">${t.text}</td><td class="num">${t.type === 'income' ? formatMoney(t.amount).replace('฿','') : '-'}</td><td class="num">${t.type === 'expense' ? formatMoney(t.amount).replace('฿','') : '-'}</td><td class="num">${formatMoney(running).replace('฿','')}</td><td>${t.note || ''}</td>`; 
+                
+                const displayText = t.text.replace(/\n/g, '<br>');
+                const displayNote = t.note ? t.note.replace(/\n/g, '<br>') : '';
+                
+                tr.innerHTML = `<td style="white-space: nowrap;">${formatThaiDateShort(t.date)}</td><td style="color: black;">${displayText}</td><td class="num">${t.type === 'income' ? formatMoney(t.amount).replace('฿','') : '-'}</td><td class="num">${t.type === 'expense' ? formatMoney(t.amount).replace('฿','') : '-'}</td><td class="num">${formatMoney(running).replace('฿','')}</td><td>${displayNote}</td>`; 
                 tbody.appendChild(tr); 
             });
             const [y, m] = monthInput.value.split('-'); const label = `${['มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'][parseInt(m)-1]} ${parseInt(y)+543}`;
@@ -563,3 +589,5 @@
     </script>
 </body>
 </html>
+
+
