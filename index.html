@@ -17,9 +17,7 @@
             touch-action: manipulation; 
             -webkit-text-size-adjust: 100%;
         }
-        /* Force Prompt font everywhere */
         code, kbd, samp, pre, .font-mono { font-family: 'Prompt', sans-serif !important; }
-
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
         @keyframes pulse { 0% { opacity: 1; } 50% { opacity: .5; } }
@@ -27,43 +25,46 @@
         @keyframes slideIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
         .undo-row { animation: slideIn 0.3s ease-out; }
         
-        /* --- PASTEL THEME EXPORT TABLE --- */
+        /* --- PASTEL THEME EXPORT TABLE (Updated for Font Resizing) --- */
         #printArea { 
             background: white; 
             box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1); 
             padding: 40px; 
-            width: 210mm; /* A4 Width */
+            width: 210mm; 
             min-height: 297mm; 
             margin: auto; 
             color: #334155;
             border-radius: 16px;
             font-family: 'Prompt', sans-serif;
+            /* Base font size for scaling children */
+            font-size: 14px; 
+            transition: font-size 0.2s ease-out;
         }
 
         .print-table { 
             width: 100%; 
             border-collapse: separate; 
             border-spacing: 0; 
-            border-radius: 16px; /* Rounded corners */
+            border-radius: 16px; 
             overflow: hidden; 
             border: 1px solid #e2e8f0;
             margin-top: 20px;
         }
 
         .print-table th { 
-            background-color: #d1fae5; /* Pastel Mint Green */
+            background-color: #d1fae5; 
             color: #065f46; 
             font-weight: 600; 
             text-align: center; 
-            padding: 14px 10px; 
-            font-size: 13px; 
+            padding: 1em 0.8em;
+            font-size: 0.95em; /* Relative to parent */
             border-bottom: 1px solid #a7f3d0;
         }
 
         .print-table td { 
-            padding: 12px 14px; 
+            padding: 0.9em 1em;
             text-align: left; 
-            font-size: 12px; 
+            font-size: 0.9em; /* Relative to parent */
             border-bottom: 1px solid #f1f5f9;
             vertical-align: top;
             color: #475569;
@@ -76,29 +77,36 @@
             font-variant-numeric: tabular-nums;
         }
 
-        /* Pastel Row Highlights */
         .print-table tr.row-bold td { 
-            background-color: #eff6ff !important; /* Pastel Baby Blue */
+            background-color: #eff6ff !important; 
             color: #1e40af;
             font-weight: 600;
         }
 
         .print-table tfoot td { 
-            background-color: #fff1f2; /* Pastel Soft Pink */
+            background-color: #fff1f2; 
             color: #be123c;
             font-weight: 700 !important; 
-            font-size: 13px; 
-            padding: 16px 14px;
+            font-size: 0.95em; /* Relative */
+            padding: 1.1em 1em;
             border-top: 2px solid #fecdd3;
         }
 
         .print-header { text-align: center; margin-bottom: 30px; }
-        .print-header h1 { font-size: 22px; font-weight: 700; color: #1e293b; margin-bottom: 4px; }
-        .print-header p { font-size: 14px; color: #64748b; font-weight: 500; }
+        .print-header h1 { font-size: 1.6em; font-weight: 700; color: #1e293b; margin-bottom: 0.2em; }
+        .print-header p { font-size: 1em; color: #64748b; font-weight: 500; }
 
         /* Modals & UI */
         #exportOverlay, #editOverlay, #addOverlay { position: fixed; inset: 0; background: rgba(0,0,0,0.75); z-index: 90; display: none; backdrop-filter: blur(4px); }
-        #exportModal { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0.95); width: 95%; max-width: 1000px; height: 90vh; background: white; border-radius: 24px; z-index: 100; display: none; flex-direction: column; opacity: 0; transition: all 0.3s ease; }
+        #exportModal { 
+            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0.95); 
+            width: 95%; max-width: 1000px; height: 90vh; 
+            background: #f8fafc; 
+            border-radius: 24px; z-index: 100; display: none; flex-direction: column; opacity: 0; transition: all 0.3s ease; 
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); 
+            overflow: hidden;
+        }
+        
         #editModalContent, #addModalContent { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0.95); width: 95%; max-width: 500px; background: white; border-radius: 24px; z-index: 100; display: none; padding: 24px; opacity: 0; transition: all 0.3s ease; }
         
         .visible { display: flex !important; opacity: 1 !important; transform: translate(-50%, -50%) scale(1) !important; }
@@ -116,7 +124,6 @@
         .num-btn:active { background-color: #f0fdf4; transform: scale(0.95); border-color: #86efac; }
         .num-btn-action { background-color: transparent; border-color: transparent; box-shadow: none; color: #64748b; }
         
-        /* Textarea styles */
         textarea.form-input { resize: none; min-height: 42px; line-height: 1.5; }
         input, select, textarea, button { font-size: 16px; touch-action: manipulation; font-family: 'Prompt', sans-serif; }
 
@@ -137,7 +144,7 @@
                 <div class="text-center"><h1 class="text-3xl font-bold text-slate-800 tracking-tight">MyPocket <span class="text-sm bg-green-600 text-white px-2 py-1 rounded-lg align-middle ml-1">Lite</span></h1><p class="text-slate-500 mt-2">บันทึกรายรับรายจ่าย ง่ายๆ แค่ปลายนิ้ว</p></div>
             </div>
             <button onclick="showPinEntry()" class="w-full bg-green-600 hover:bg-green-700 text-white text-lg font-bold py-4 rounded-2xl shadow-lg shadow-green-200 transition transform active:scale-95 flex items-center justify-center gap-2 group"><span>เข้าสู่ระบบ</span><i data-lucide="arrow-right" class="w-5 h-5 group-hover:translate-x-1 transition-transform"></i></button>
-            <div class="mt-12 text-center"><p class="text-slate-400 text-xs">Version 2.6 (Pastel Export)</p></div>
+            <div class="mt-12 text-center"><p class="text-slate-400 text-xs">Version 2.9 (Font Resize)</p></div>
         </div>
         <div id="pinEntrySection" class="hidden flex-col items-center w-full max-w-sm px-6">
             <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4 text-green-600 shadow-sm"><i data-lucide="lock" class="w-8 h-8"></i></div>
@@ -252,11 +259,27 @@
     <!-- EXPORT MODAL -->
     <div id="exportOverlay"></div>
     <div id="exportModal">
-        <div class="flex justify-between items-center p-4 border-b border-slate-100 bg-slate-50/50 rounded-t-2xl">
-            <div class="flex items-center gap-2"><i data-lucide="file-text" class="w-5 h-5 text-indigo-600"></i><h3 class="font-bold text-slate-700">ตัวอย่างเอกสาร</h3></div>
-            <div class="flex gap-2"><button onclick="closeExportModal()" class="px-4 py-2 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-200 transition">ปิด</button><button onclick="processDownload()" id="downloadActionBtn" class="px-4 py-2 rounded-lg text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 shadow-lg shadow-indigo-200 transition flex items-center gap-2"><i data-lucide="download" class="w-4 h-4"></i> ดาวน์โหลด</button></div>
+        <div class="flex justify-between items-center p-4 border-b border-slate-100 bg-sky-50 rounded-t-2xl relative">
+            <!-- Font Size Buttons (Center Top) -->
+            <div class="absolute left-1/2 -translate-x-1/2 top-3 flex items-center gap-1 bg-white p-1 rounded-lg shadow-sm border border-slate-200">
+                <button onclick="adjustFontSize(-1)" class="p-1 hover:bg-slate-100 rounded transition" title="ลดขนาด"><i data-lucide="minus" class="w-4 h-4 text-slate-500"></i></button>
+                <span id="fontSizeDisplay" class="text-[10px] font-mono text-slate-500 w-12 text-center">14px</span>
+                <button onclick="adjustFontSize(1)" class="p-1 hover:bg-slate-100 rounded transition" title="เพิ่มขนาด"><i data-lucide="plus" class="w-4 h-4 text-slate-500"></i></button>
+            </div>
+            
+            <div class="flex items-center gap-2"><i data-lucide="file-check" class="w-5 h-5 text-sky-600"></i><h3 class="font-bold text-slate-700">ตัวอย่างเอกสารก่อนดาวน์โหลด</h3></div>
+            <div class="flex gap-2">
+                <button onclick="closeExportModal()" class="px-4 py-2 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-200 transition">ปิด</button>
+                
+                <!-- Share Button -->
+                <button onclick="processShare()" class="px-3 py-2 rounded-lg text-sm font-medium text-violet-700 bg-violet-100 hover:bg-violet-200 shadow-sm transition flex items-center gap-2">
+                    <i data-lucide="share-2" class="w-4 h-4"></i>
+                </button>
+                
+                <button onclick="processDownload()" id="downloadActionBtn" class="px-4 py-2 rounded-lg text-sm font-medium text-teal-800 bg-teal-200 hover:bg-teal-300 shadow-md transition flex items-center gap-2"><i data-lucide="download" class="w-4 h-4"></i> ดาวน์โหลด</button>
+            </div>
         </div>
-        <div class="overflow-y-auto p-8 bg-slate-200 flex-grow custom-scrollbar flex justify-center items-start">
+        <div class="overflow-y-auto p-8 bg-slate-200 flex-grow custom-scrollbar flex justify-center items-start" id="printScrollArea">
             <div id="printArea">
                 <div class="print-header"><h1 class="text-2xl font-bold text-slate-800 mb-1">รายงานรายรับรายจ่าย</h1><p id="exportMonthTitle" class="text-slate-500 font-medium text-base tracking-wide">เดือน...</p></div>
                 <table class="print-table">
@@ -279,13 +302,13 @@
         let exportData = [];
         let currentExportFormat = 'pdf';
         let editingItem = null;
+        let currentFontSize = 14;
 
         const monthInput = document.getElementById('monthFilter');
         const dateInput = document.getElementById('date');
         const list = document.getElementById('list');
         const syncStatus = document.getElementById('syncStatus');
         
-        // Auto-clean input for amount fields
         ['amount', 'edit_amount'].forEach(id => {
             document.getElementById(id).addEventListener('input', function(e) {
                 this.value = this.value.replace(/[, ]/g, '');
@@ -307,7 +330,6 @@
             if(!isNaN(d)) document.getElementById('dateDisplayText').textContent = `${d.getDate()}/${thaiMonthsShort[d.getMonth()]}/${d.getFullYear() + 543}`;
         };
 
-        // Script Loader
         function loadScript(src) {
             return new Promise((resolve, reject) => {
                 if (document.querySelector(`script[src="${src}"]`)) { resolve(); return; }
@@ -321,17 +343,10 @@
             try {
                 const res = await fetch(GOOGLE_SCRIPT_URL);
                 const serverData = await res.json();
-                
-                // Mark all server items as synced
                 serverData.forEach(item => item.syncStatus = 'synced');
-                
                 const serverMap = new Map(serverData.map(i => [String(i.id), i]));
                 const merged = [];
-                
-                // 1. Add all server items
                 serverData.forEach(sItem => merged.push(sItem));
-                
-                // 2. Add local items that are NOT in server yet (Pending/Failed/TempSynced)
                 transactions.forEach(local => {
                     if (!serverMap.has(String(local.id))) {
                         if (local.syncStatus === 'failed' || local.syncStatus === 'pending' || local.syncStatus === 'temp_synced') {
@@ -339,11 +354,9 @@
                         }
                     }
                 });
-
                 transactions = merged;
                 render();
                 syncStatus.innerHTML = `<span class="text-green-600 font-medium">ออนไลน์</span>`;
-                
             } catch (e) {
                 console.log("Sync error");
                 syncStatus.innerHTML = `<span class="text-orange-500">เชื่อมต่อไม่ได้</span>`;
@@ -355,10 +368,8 @@
                 item.syncStatus = 'pending';
                 render();
             }
-            
             const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 sec timeout
-
+            const timeoutId = setTimeout(() => controller.abort(), 10000);
             try {
                 const response = await fetch(GOOGLE_SCRIPT_URL, {
                     method: 'POST',
@@ -366,16 +377,11 @@
                     signal: controller.signal
                 });
                 clearTimeout(timeoutId);
-                
                 if (!response.ok) throw new Error("Network error");
-                
-                // Success
                 item.syncStatus = 'synced';
                 render();
-                
             } catch(e) {
                 clearTimeout(timeoutId);
-                // Fail
                 item.syncStatus = 'failed';
                 render();
             }
@@ -414,7 +420,6 @@
                 note: document.getElementById('note').value,
                 syncStatus: 'temp_synced' 
             };
-
             transactions.push(newData);
             monthInput.value = document.getElementById('date').value.slice(0,7);
             render();
@@ -490,7 +495,6 @@
             document.getElementById('displayDateText').innerText = label;
 
             let filtered = transactions.filter(t => t.date.startsWith(selectedMonth));
-            
             filtered.sort((a, b) => { 
                 const d1 = new Date(a.date); const d2 = new Date(b.date); 
                 if(d1 - d2 !== 0) return d1 - d2; 
@@ -527,7 +531,6 @@
                 calculated.forEach(t => {
                     const isPending = !!pendingDeletes[t.id];
                     const div = document.createElement('div');
-                    
                     let statusHtml = '';
                     if (t.syncStatus === 'failed') {
                         statusHtml = `<button onclick="retryItem('${t.id}')" class="status-badge status-failed"><i data-lucide="refresh-cw" class="w-3 h-3"></i> ลองอีกครั้ง</button>`;
@@ -543,10 +546,8 @@
                     } else {
                         const isInc = t.type === 'income'; 
                         div.className = `group flex items-center justify-between p-4 bg-white rounded-xl border border-slate-100 shadow-sm transition hover:shadow-md ${isInc ? 'hover:border-emerald-200' : 'hover:border-rose-200'} mb-3`;
-                        // Support multiline text display
                         const displayText = t.text.replace(/\n/g, '<br>');
                         const displayNote = t.note ? t.note.replace(/\n/g, '<br>') : '';
-                        
                         div.innerHTML = `
                             <div class="flex items-center gap-4">
                                 <div class="w-10 h-10 rounded-full ${isInc ? 'bg-emerald-100 text-emerald-600' : 'bg-rose-100 text-rose-600'} flex items-center justify-center flex-shrink-0"><i data-lucide="${isInc ? 'arrow-up' : 'arrow-down'}" class="w-5 h-5"></i></div>
@@ -583,10 +584,8 @@
                 if(t.type === 'income') { running += Number(t.amount); totalInc += Number(t.amount); } else { running -= Number(t.amount); totalExp += Number(t.amount); } 
                 const tr = document.createElement('tr'); 
                 if (index === 0 || index === sorted.length - 1) tr.classList.add('row-bold');
-                
                 const displayText = t.text.replace(/\n/g, '<br>');
                 const displayNote = t.note ? t.note.replace(/\n/g, '<br>') : '';
-                
                 tr.innerHTML = `<td style="white-space: nowrap;">${formatThaiDateShort(t.date)}</td><td style="color: black;">${displayText}</td><td class="num">${t.type === 'income' ? formatMoney(t.amount).replace('฿','') : '-'}</td><td class="num">${t.type === 'expense' ? formatMoney(t.amount).replace('฿','') : '-'}</td><td class="num">${formatMoney(running).replace('฿','')}</td><td>${displayNote}</td>`; 
                 tbody.appendChild(tr); 
             });
@@ -601,13 +600,65 @@
             const menu = document.getElementById('exportMenu'); const container = document.getElementById('exportDropdownContainer');
             if (!menu.classList.contains('hidden') && !container.contains(event.target)) menu.classList.add('hidden');
         });
-        window.previewExport = function(format) { if(exportData.length===0){alert('ไม่มีข้อมูลให้ส่งออก');return;} currentExportFormat = format; populateExportTable(); document.getElementById('exportOverlay').classList.add('overlay-visible'); document.getElementById('exportModal').classList.add('visible'); document.getElementById('exportMenu').classList.add('hidden'); };
+        
+        // FONT SIZE FUNCTION
+        window.adjustFontSize = function(delta) {
+            currentFontSize += delta;
+            if(currentFontSize < 8) currentFontSize = 8;
+            if(currentFontSize > 24) currentFontSize = 24;
+            
+            document.getElementById('printArea').style.fontSize = currentFontSize + 'px';
+            document.getElementById('fontSizeDisplay').innerText = currentFontSize + 'px';
+        };
+
+        window.previewExport = function(format) { 
+            if(exportData.length===0){alert('ไม่มีข้อมูลให้ส่งออก');return;} 
+            currentExportFormat = format; 
+            populateExportTable(); 
+            document.getElementById('exportOverlay').classList.add('overlay-visible'); 
+            document.getElementById('exportModal').classList.add('visible'); 
+            document.getElementById('exportMenu').classList.add('hidden'); 
+            
+            // Reset font size state
+            currentFontSize = 14;
+            document.getElementById('printArea').style.fontSize = '14px';
+            if(document.getElementById('fontSizeDisplay')) document.getElementById('fontSizeDisplay').innerText = '14px';
+            lucide.createIcons();
+        };
+        
+        window.processShare = async function() {
+            const element = document.getElementById('printArea');
+            if(!element) return;
+            try {
+                const canvas = await html2canvas(element, { scale: 2, useCORS: true, logging: false });
+                canvas.toBlob(async (blob) => {
+                    if (blob) {
+                        const file = new File([blob], `report_${monthInput.value}.png`, { type: 'image/png' });
+                        if (navigator.share) {
+                            try {
+                                await navigator.share({
+                                    files: [file],
+                                    title: 'รายงานรายรับรายจ่าย',
+                                    text: `รายงานประจำเดือน ${document.getElementById('exportMonthTitle').innerText}`
+                                });
+                            } catch (err) {
+                                console.error('Share failed', err);
+                            }
+                        } else {
+                            alert('อุปกรณ์นี้ไม่รองรับการแชร์ไฟล์โดยตรง');
+                        }
+                    }
+                }, 'image/png');
+            } catch (e) {
+                alert('เกิดข้อผิดพลาดในการเตรียมไฟล์เพื่อแชร์');
+            }
+        };
+
         window.exportExcel = function() { if(exportData.length===0){alert('ไม่มีข้อมูลให้ส่งออก');return;} let running = 0; const sorted = [...exportData].sort((a, b) => new Date(a.date) - new Date(b.date)); const excelData = sorted.map(t => { if(t.type === 'income') running += Number(t.amount); else running -= Number(t.amount); return { 'วันที่': formatThaiDateShort(t.date), 'รายการ': t.text, 'รายรับ': t.type === 'income' ? t.amount : '', 'รายจ่าย': t.type === 'expense' ? t.amount : '', 'คงเหลือ': running, 'หมายเหตุ': t.note || '' }; }); const ws = XLSX.utils.json_to_sheet(excelData); const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Transactions"); XLSX.writeFile(wb, `รายงาน_${monthInput.value}.xlsx`); document.getElementById('exportMenu').classList.add('hidden'); };
         window.closeExportModal = function() { document.getElementById('exportOverlay').classList.remove('overlay-visible'); document.getElementById('exportModal').classList.remove('visible'); };
         document.getElementById('exportOverlay').addEventListener('click', window.closeExportModal);
-        window.processDownload = function() { const element = document.getElementById('printArea'); const btn = document.getElementById('downloadActionBtn'); btn.disabled = true; btn.innerHTML = '<div class="loading-spinner border-white border-t-transparent w-4 h-4"></div>...'; const filename = `รายงาน_${monthInput.value}`; html2canvas(element, { scale: 2, useCORS: true, logging: false }).then(canvas => { const link = document.createElement('a'); link.download = filename + '.png'; link.href = canvas.toDataURL("image/png"); link.click(); btn.disabled = false; btn.innerHTML = `<i data-lucide="image-down" class="w-4 h-4"></i> บันทึกเป็น PNG`; lucide.createIcons(); }); };
+        window.processDownload = function() { const element = document.getElementById('printArea'); const btn = document.getElementById('downloadActionBtn'); btn.disabled = true; btn.innerHTML = '<div class="loading-spinner border-white border-t-transparent w-4 h-4"></div>...'; const filename = `รายงาน_${monthInput.value}`; html2canvas(element, { scale: 2, useCORS: true, logging: false }).then(canvas => { const link = document.createElement('a'); link.download = filename + '.png'; link.href = canvas.toDataURL("image/png"); link.click(); btn.disabled = false; btn.innerHTML = `<i data-lucide="image-down" class="w-4 h-4"></i> ดาวน์โหลด</button>`; lucide.createIcons(); }); };
 
-        // Auth & Login
         const loginPinInput = document.getElementById('loginPinInput'); const loginError = document.getElementById('loginError'); const loginScreen = document.getElementById('loginScreen');
         function showPinEntry() { document.getElementById('welcomeSection').classList.add('hidden'); document.getElementById('pinEntrySection').classList.remove('hidden'); document.getElementById('pinEntrySection').classList.add('flex'); }
         function hidePinEntry() { document.getElementById('welcomeSection').classList.remove('hidden'); document.getElementById('pinEntrySection').classList.add('hidden'); document.getElementById('pinEntrySection').classList.remove('flex'); }
@@ -620,16 +671,11 @@
         list.onclick = (e) => { const delBtn = e.target.closest('.delete-btn'); if(delBtn) markForDeletion(delBtn.dataset.id); const undoBtn = e.target.closest('.undo-btn'); if(undoBtn) doUndo(undoBtn.dataset.id); const editBtn = e.target.closest('.edit-btn'); if(editBtn) { const item = transactions.find(t => String(t.id) === String(editBtn.dataset.id)); if(item) openEditModal(item); } };
         document.getElementById('addOverlay').addEventListener('click', closeAddModal);
 
-        // Init (Online Only)
-        monthInput.value = new Date().toISOString().slice(0,7); // Default to current month
+        monthInput.value = new Date().toISOString().slice(0,7);
         dateInput.valueAsDate = new Date();
         updateDateDisplay();
         monthInput.onchange = render; dateInput.onchange = updateDateDisplay;
-        
-        // Load data once at startup
         fetchData();
     </script>
 </body>
 </html>
-
-
